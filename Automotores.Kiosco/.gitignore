@@ -1,0 +1,67 @@
+# =========================
+# Build
+# =========================
+bin/
+obj/
+out/
+
+# =========================
+# User-specific files
+# =========================
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# =========================
+# VSCode
+# =========================
+.vscode/
+
+# =========================
+# Visual Studio
+# =========================
+.vs/
+
+# =========================
+# Rider
+# =========================
+.idea/
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# ASP.NET Core
+# =========================
+Properties/launchSettings.json
+
+# =========================
+# Secrets
+# =========================
+appsettings.Development.json
+appsettings.Local.json
+
+# =========================
+# EF Migrations (opcional)
+# =========================
+# Si quieres ignorarlas:
+# Migrations/
+
+# =========================
+# Node (por si agregas frontend)
+# =========================
+node_modules/
+
+# =========================
+# Docker
+# =========================
+docker-compose.override.yml
