@@ -3,13 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Automotores.Kiosco.Controllers
 {
-    [ApiController]
-    [Route("api/v1/agencias")]
-    public class AgenciaController : ControllerBase
+    public class AgenciasController : BaseController
     {
         private readonly AgenciaService _agenciaService;
 
-        public AgenciaController(AgenciaService agenciaService)
+        public AgenciasController(AgenciaService agenciaService)
         {
             _agenciaService = agenciaService;
         }

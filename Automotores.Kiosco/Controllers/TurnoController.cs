@@ -3,13 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Automotores.Kiosco.Controllers
 {
-    [ApiController]
-    [Route("api/v1/turnos")]
-    public class TurnoController : ControllerBase
+    public class TurnosController : BaseController
     {
         private readonly TurnoService _turnoService;
 
-        public TurnoController(TurnoService turnoService)
+        public TurnosController(TurnoService turnoService)
         {
             _turnoService = turnoService;
         }
