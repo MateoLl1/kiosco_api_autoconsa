@@ -14,7 +14,7 @@ builder.Services.AddDbContext<DataContext>(options =>
     )
 );
 
-builder.Services.AddScoped<ServicioCliente>();
+builder.Services.AddScoped<ClienteService>();
 
 
 var app = builder.Build();

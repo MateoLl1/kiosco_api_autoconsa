@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 [Route("api/v1/[controller]")]
 public class ClienteController : ControllerBase
 {
-    private readonly ServicioCliente _servicio;
+    private readonly ClienteService _servicio;
 
-    public ClienteController(ServicioCliente servicio)
+    public ClienteController(ClienteService servicio)
     {
         _servicio = servicio;
     }

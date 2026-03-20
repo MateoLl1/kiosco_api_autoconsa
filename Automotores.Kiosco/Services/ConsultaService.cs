@@ -2,11 +2,11 @@
 using Automotores.Kiosco.Models;
 using Microsoft.EntityFrameworkCore;
 
-public class ServicioCliente
+public class ClienteService
 {
     private readonly DataContext _db;
 
-    public ServicioCliente(DataContext db)
+    public ClienteService(DataContext db)
     {
         _db = db;
     }
