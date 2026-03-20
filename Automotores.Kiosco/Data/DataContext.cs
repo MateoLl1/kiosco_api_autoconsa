@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Automotores.Kiosco.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Automotores.Kiosco.Modelos;
+namespace Automotores.Kiosco.Models;
 
 public partial class DataContext : DbContext
 {

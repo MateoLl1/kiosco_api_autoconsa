@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Automotores.Kiosco.Modelos;
+namespace Automotores.Kiosco.Models;
 
 public partial class SI_AGENDA
 {

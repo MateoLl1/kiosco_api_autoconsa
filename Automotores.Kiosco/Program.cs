@@ -1,5 +1,4 @@
-using Automotores.Kiosco.Modelos;
-using Automotores.Kiosco.Servicios;
+using Automotores.Kiosco.Models;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,17 +15,7 @@ builder.Services.AddDbContext<DataContext>(options =>
 );
 
 builder.Services.AddScoped<ServicioCliente>();
-builder.Services.AddHttpClient<DatabookService>((serviceProvider, client) =>
-{
-    var config = serviceProvider
-        .GetRequiredService<IConfiguration>();
 
-    var baseUrl = config["Apis:Databook:BaseUrl"];
-    var timeout = int.Parse(config["Apis:Databook:TimeoutSeconds"] ?? "10");
-
-    client.BaseAddress = new Uri(baseUrl!);
-    client.Timeout = TimeSpan.FromSeconds(timeout);
-});
 
 var app = builder.Build();
 

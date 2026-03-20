@@ -1,4 +1,5 @@
 using Automotores.Kiosco.Modelos;
+using Automotores.Kiosco.Models;
 using Microsoft.EntityFrameworkCore;
 
 public class ServicioCliente
