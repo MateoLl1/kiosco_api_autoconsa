@@ -11,12 +11,13 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")
+        builder.Configuration.GetConnectionString("SiacProduccion")
     )
 );
 
 builder.Services.AddScoped<ClienteService>();
 builder.Services.AddScoped<AgenciaService>();
+builder.Services.AddScoped<TurnoService>();
 
 
 var app = builder.Build();
