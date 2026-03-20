@@ -3,31 +3,232 @@ using System.Collections.Generic;
 using Automotores.Kiosco.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Automotores.Kiosco.Models;
+namespace Automotores.Kiosco.Data;
 
 public partial class DataContext : DbContext
 {
-    public DataContext()
-    {
-    }
-
     public DataContext(DbContextOptions<DataContext> options)
         : base(options)
     {
     }
 
-    public virtual DbSet<SI_AGENDA> SI_AGENDA { get; set; }
+    public virtual DbSet<SI_AGENCIA> SI_AGENCIA { get; set; }
 
-    public virtual DbSet<SI_CLIENTE> SI_CLIENTE { get; set; }
+    public virtual DbSet<SI_BAHIA> SiAgSI_BAHIAenda { get; set; }
 
     public virtual DbSet<SI_BAHIA> SI_BAHIA { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=serv-desarrollo;Database=siac_electro;User Id=mllerena;Password=Auto2525;TrustServerCertificate=True;");
+    public virtual DbSet<SI_CLIENTE> SI_CLIENTE { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<SI_AGENCIA>(entity =>
+        {
+            entity.HasKey(e => e.AgCodigo).HasFillFactor(80);
+
+            entity.ToTable("SI_AGENCIA");
+
+            entity.Property(e => e.AgCodigo)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("AG_CODIGO");
+            entity.Property(e => e.AgAutoFactGara).HasColumnName("AG_AUTO_FACT_GARA");
+            entity.Property(e => e.AgAutoHoja).HasColumnName("AG_AUTO_HOJA");
+            entity.Property(e => e.AgAutoLato).HasColumnName("AG_AUTO_LATO");
+            entity.Property(e => e.AgCaliRies).HasColumnName("AG_CALI_RIES");
+            entity.Property(e => e.AgCargGere)
+                .HasMaxLength(150)
+                .HasColumnName("AG_CARG_GERE");
+            entity.Property(e => e.AgCargResp)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("AG_CARG_RESP");
+            entity.Property(e => e.AgChevy).HasColumnName("AG_CHEVY");
+            entity.Property(e => e.AgClavDeal)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("AG_CLAV_DEAL");
+            entity.Property(e => e.AgCodiUaf)
+                .HasMaxLength(15)
+                .IsFixedLength()
+                .HasColumnName("AG_CODI_UAF");
+            entity.Property(e => e.AgCupoAcc).HasColumnName("AG_CUPO_ACC");
+            entity.Property(e => e.AgDealer)
+                .HasMaxLength(100)
+                .HasColumnName("AG_DEALER");
+            entity.Property(e => e.AgDireccion)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("AG_DIRECCION");
+            entity.Property(e => e.AgDistCateLead).HasColumnName("AG_DIST_CATE_LEAD");
+            entity.Property(e => e.AgEliminado).HasColumnName("AG_ELIMINADO");
+            entity.Property(e => e.AgFactAseg).HasColumnName("AG_FACT_ASEG");
+            entity.Property(e => e.AgFechMovi)
+                .HasColumnType("datetime")
+                .HasColumnName("AG_FECH_MOVI");
+            entity.Property(e => e.AgFifo).HasColumnName("AG_FIFO");
+            entity.Property(e => e.AgGerente)
+                .HasMaxLength(150)
+                .HasColumnName("AG_GERENTE");
+            entity.Property(e => e.AgHabilitar)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("ag_habilitar");
+            entity.Property(e => e.AgImagMapa)
+                .HasMaxLength(256)
+                .IsUnicode(false)
+                .HasColumnName("AG_IMAG_MAPA");
+            entity.Property(e => e.AgImpreAutoTalle).HasColumnName("AG_IMPRE_AUTO_TALLE");
+            entity.Property(e => e.AgInfo)
+                .HasMaxLength(255)
+                .HasColumnName("AG_INFO");
+            entity.Property(e => e.AgLatitud).HasColumnName("AG_LATITUD");
+            entity.Property(e => e.AgLeadLiviano)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("AG_LEAD_LIVIANO");
+            entity.Property(e => e.AgLeadPesado)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("AG_LEAD_PESADO");
+            entity.Property(e => e.AgLineCor).HasColumnName("AG_LINE_COR");
+            entity.Property(e => e.AgLongitud).HasColumnName("AG_LONGITUD");
+            entity.Property(e => e.AgMailAnalGara)
+                .HasMaxLength(150)
+                .IsUnicode(false)
+                .HasColumnName("AG_MAIL_ANAL_GARA");
+            entity.Property(e => e.AgMailBackOffi)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasComment("Para registro de mails de usuarios back office de la agencia")
+                .HasColumnName("AG_MAIL_BACK_OFFI");
+            entity.Property(e => e.AgMailBo)
+                .HasMaxLength(600)
+                .IsUnicode(false)
+                .HasColumnName("AG_MAIL_BO");
+            entity.Property(e => e.AgMailCaja)
+                .HasMaxLength(300)
+                .IsUnicode(false)
+                .HasColumnName("AG_MAIL_CAJA");
+            entity.Property(e => e.AgMailCont)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("AG_MAIL_CONT");
+            entity.Property(e => e.AgMailCredDir)
+                .HasMaxLength(1000)
+                .IsUnicode(false)
+                .HasColumnName("AG_MAIL_CRED_DIR");
+            entity.Property(e => e.AgMailFi)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("AG_MAIL_FI");
+            entity.Property(e => e.AgMailLogi)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("AG_MAIL_LOGI");
+            entity.Property(e => e.AgMailServ)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("AG_MAIL_SERV");
+            entity.Property(e => e.AgMailVehi)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("AG_MAIL_VEHI");
+            entity.Property(e => e.AgMensProf)
+                .HasMaxLength(256)
+                .IsUnicode(false)
+                .HasColumnName("AG_MENS_PROF");
+            entity.Property(e => e.AgMontoRese).HasColumnName("AG_MONTO_RESE");
+            entity.Property(e => e.AgNick)
+                .HasMaxLength(2)
+                .IsUnicode(false)
+                .HasColumnName("AG_NICK");
+            entity.Property(e => e.AgNombre)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("AG_NOMBRE");
+            entity.Property(e => e.AgNumeTecn).HasColumnName("AG_NUME_TECN");
+            entity.Property(e => e.AgOrden).HasColumnName("AG_ORDEN");
+            entity.Property(e => e.AgOrdenSoliRepu).HasColumnName("AG_ORDEN_SOLI_REPU");
+            entity.Property(e => e.AgPassTurn)
+                .HasMaxLength(5)
+                .IsFixedLength()
+                .HasColumnName("AG_PASS_TURN");
+            entity.Property(e => e.AgPedgmDest)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("AG_PEDGM_DEST");
+            entity.Property(e => e.AgPedgmSoli)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("AG_PEDGM_SOLI");
+            entity.Property(e => e.AgPedgmText)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("AG_PEDGM_TEXT");
+            entity.Property(e => e.AgPlaca)
+                .HasMaxLength(10)
+                .IsFixedLength()
+                .HasColumnName("AG_PLACA");
+            entity.Property(e => e.AgPrefijo)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("AG_PREFIJO");
+            entity.Property(e => e.AgPromo).HasColumnName("AG_PROMO");
+            entity.Property(e => e.AgRespId)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("AG_RESP_ID");
+            entity.Property(e => e.AgResponsable)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("AG_RESPONSABLE");
+            entity.Property(e => e.AgRutaImg)
+                .HasMaxLength(2500)
+                .HasColumnName("AG_RUTA_IMG");
+            entity.Property(e => e.AgTelefono1)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("AG_TELEFONO1");
+            entity.Property(e => e.AgTelefono2)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("AG_TELEFONO2");
+            entity.Property(e => e.AgTorre)
+                .HasDefaultValue((short)0, "DF_SI_AGENCIA_AG_TORRE")
+                .HasColumnName("AG_TORRE");
+            entity.Property(e => e.AgTranAuto)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("AG_TRAN_AUTO");
+            entity.Property(e => e.AgTransNomb)
+                .HasMaxLength(100)
+                .HasColumnName("AG_TRANS_NOMB");
+            entity.Property(e => e.AgTransRuc)
+                .HasMaxLength(13)
+                .HasColumnName("AG_TRANS_RUC");
+            entity.Property(e => e.AgTurno).HasColumnName("AG_TURNO");
+            entity.Property(e => e.AgUrlShort)
+                .HasMaxLength(1000)
+                .IsUnicode(false)
+                .HasColumnName("AG_URL_SHORT");
+            entity.Property(e => e.AgUsuaDeal)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("AG_USUA_DEAL");
+            entity.Property(e => e.ClCodiUsad)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("CL_CODI_USAD");
+            entity.Property(e => e.SuCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("SU_CODIGO");
+            entity.Property(e => e.UsCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("US_CODIGO");
+        });
+
         modelBuilder.Entity<SI_AGENDA>(entity =>
         {
             entity.HasKey(e => e.AaCodigo)
@@ -149,6 +350,47 @@ public partial class DataContext : DbContext
             entity.Property(e => e.UsCodigo)
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("US_CODIGO");
+        });
+
+        modelBuilder.Entity<SI_BAHIA>(entity =>
+        {
+            entity.HasKey(e => e.BhCodigo).HasFillFactor(80);
+
+            entity.ToTable("SI_BAHIA");
+
+            entity.Property(e => e.BhCodigo)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("BH_CODIGO");
+            entity.Property(e => e.AgCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("AG_CODIGO");
+            entity.Property(e => e.BhBahiaTipo)
+                .HasComment("1 BAHIAS BLOQUEASAS PARA CALL CENTER\r\n0 DAFAULT")
+                .HasDefaultValue(false, "DF_SI_BAHIA_BH_BAHIA_TIPO")
+                .HasColumnName("BH_BAHIA_TIPO");
+            entity.Property(e => e.BhDescripcion)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("BH_DESCRIPCION");
+            entity.Property(e => e.BhNombre)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("BH_NOMBRE");
+            entity.Property(e => e.BhOrden)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("BH_ORDEN");
+            entity.Property(e => e.BhStatus).HasColumnName("BH_STATUS");
+            entity.Property(e => e.BhTipo)
+                .HasMaxLength(1)
+                .IsFixedLength()
+                .HasColumnName("BH_TIPO");
+            entity.Property(e => e.TeCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TE_CODIGO");
+            entity.Property(e => e.TlCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TL_CODIGO");
         });
 
         modelBuilder.Entity<SI_CLIENTE>(entity =>
@@ -390,14 +632,6 @@ public partial class DataContext : DbContext
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("ZC_CODIGO");
         });
-
-        modelBuilder.Entity<SI_CLIENTE>()
-            .Property(e => e.ClCodigo)
-            .HasPrecision(18, 0);
-
-        modelBuilder.Entity<SI_AGENDA>()
-            .Property(e => e.AaCodigo)
-            .HasPrecision(18, 0);
 
         OnModelCreatingPartial(modelBuilder);
     }

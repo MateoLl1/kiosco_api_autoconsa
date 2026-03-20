@@ -1,4 +1,5 @@
 
+using Automotores.Kiosco.Data;
 using Automotores.Kiosco.Models;
 using Microsoft.EntityFrameworkCore;
 

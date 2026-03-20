@@ -1,4 +1,5 @@
-using Automotores.Kiosco.Models;
+using Automotores.Kiosco.Data;
+using Automotores.Kiosco.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +16,7 @@ builder.Services.AddDbContext<DataContext>(options =>
 );
 
 builder.Services.AddScoped<ClienteService>();
+builder.Services.AddScoped<AgenciaService>();
 
 
 var app = builder.Build();
