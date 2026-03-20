@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Automotores.Kiosco.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Automotores.Kiosco.Models;using Microsoft.EntityFrameworkCore;
 
 namespace Automotores.Kiosco.Data;
 
@@ -14,11 +11,16 @@ public partial class DataContext : DbContext
 
     public virtual DbSet<SI_AGENCIA> SI_AGENCIA { get; set; }
 
-    public virtual DbSet<SI_BAHIA> SiAgSI_BAHIAenda { get; set; }
-
     public virtual DbSet<SI_BAHIA> SI_BAHIA { get; set; }
 
     public virtual DbSet<SI_CLIENTE> SI_CLIENTE { get; set; }
+
+
+    public virtual DbSet<SI_AGEND_TECN> SI_AGEND_TECN { get; set; }
+
+    public virtual DbSet<SI_MODELO> SI_MODELO { get; set; }
+
+    public virtual DbSet<SI_STICKER> SI_STICKER { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -634,7 +636,424 @@ public partial class DataContext : DbContext
         });
 
         OnModelCreatingPartial(modelBuilder);
+
+        modelBuilder.Entity<SI_AGEND_TECN>(entity =>
+        {
+            entity.HasKey(e => e.AtCodigo).HasFillFactor(80);
+
+            entity.ToTable("SI_AGEND_TECN");
+
+            entity.HasIndex(e => new { e.AtStatus, e.IoCodigo, e.CmcCodigo, e.AtEstaCc2 }, "AT_CODIGO_NEW").HasFillFactor(80);
+
+            entity.HasIndex(e => e.AtCodiRela, "AT_CODI_RELA").HasFillFactor(80);
+
+            entity.HasIndex(e => e.FsCodigo, "FS_CODIGO").HasFillFactor(80);
+
+            entity.HasIndex(e => e.StCodigo, "IX_ST_CODIGO").HasFillFactor(80);
+
+            entity.HasIndex(e => e.TlCodigo, "TL_CODIGO").HasFillFactor(80);
+
+            entity.HasIndex(e => new { e.BhCodigo, e.AtStatus }, "bh_codigo").HasFillFactor(80);
+
+            entity.HasIndex(e => new { e.AtHoraInicio, e.AtHoraFin }, "fechas").HasFillFactor(80);
+
+            entity.HasIndex(e => e.HtCodigo, "ht_codigo").HasFillFactor(80);
+
+            entity.HasIndex(e => e.AtEstaCc2, "indAgen_Tecn").HasFillFactor(80);
+
+            entity.Property(e => e.AtCodigo)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("AT_CODIGO");
+            entity.Property(e => e.AtCodiRela)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("AT_CODI_RELA");
+            entity.Property(e => e.AtEstaCc)
+                .HasMaxLength(2)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("AT_ESTA_CC");
+            entity.Property(e => e.AtEstaCc1)
+                .HasMaxLength(2)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("AT_ESTA_CC1");
+            entity.Property(e => e.AtEstaCc2).HasColumnName("AT_ESTA_CC2");
+            entity.Property(e => e.AtEstado)
+                .HasMaxLength(1)
+                .IsFixedLength()
+                .HasColumnName("AT_ESTADO");
+            entity.Property(e => e.AtFechCanc)
+                .HasColumnType("datetime")
+                .HasColumnName("AT_FECH_CANC");
+            entity.Property(e => e.AtFechCc1)
+                .HasColumnType("datetime")
+                .HasColumnName("AT_FECH_CC1");
+            entity.Property(e => e.AtFechConf)
+                .HasColumnType("datetime")
+                .HasColumnName("AT_FECH_CONF");
+            entity.Property(e => e.AtFechCrea)
+                .HasColumnType("datetime")
+                .HasColumnName("AT_FECH_CREA");
+            entity.Property(e => e.AtFechFina)
+                .HasColumnType("datetime")
+                .HasColumnName("AT_FECH_FINA");
+            entity.Property(e => e.AtFechGest)
+                .HasColumnType("datetime")
+                .HasColumnName("AT_FECH_GEST");
+            entity.Property(e => e.AtFechHoja)
+                .HasColumnType("datetime")
+                .HasColumnName("AT_FECH_HOJA");
+            entity.Property(e => e.AtFechLleg)
+                .HasColumnType("datetime")
+                .HasColumnName("AT_FECH_LLEG");
+            entity.Property(e => e.AtFecha)
+                .HasColumnType("datetime")
+                .HasColumnName("AT_FECHA");
+            entity.Property(e => e.AtFrecuencia)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("AT_FRECUENCIA");
+            entity.Property(e => e.AtHoraFin)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("AT_HORA_FIN");
+            entity.Property(e => e.AtHoraInicio)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("AT_HORA_INICIO");
+            entity.Property(e => e.AtHoraTaxi)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("AT_HORA_TAXI");
+            entity.Property(e => e.AtIntePrea)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("AT_INTE_PREA");
+            entity.Property(e => e.AtInteStat).HasColumnName("AT_INTE_STAT");
+            entity.Property(e => e.AtKilome)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("AT_KILOME");
+            entity.Property(e => e.AtMotiAnu)
+                .HasComment("1	NO CONTESTA\r\n2	REAGENDA\r\n3	NO EXISTE INTERÉS\r\n4	ELIGE OTRO TALLER")
+                .HasColumnName("AT_MOTI_ANU");
+            entity.Property(e => e.AtObservacion)
+                .HasMaxLength(1000)
+                .IsUnicode(false)
+                .HasColumnName("AT_OBSERVACION");
+            entity.Property(e => e.AtPreeTrab)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("AT_PREE_TRAB");
+            entity.Property(e => e.AtStatus)
+                .HasComment("1 CITA O AGENDADO\r\n2 CONFIRMADO \r\n3 CONCESIONARIO \r\n4 ATENDIDO \r\n5 CANCELADO \r\n6 NO LLEGO \r\n7 TERMINADO\r\n8 REPUESTOS\r\n9 AUTORIZACION\r\n10 LAVADORA\r\n11 CAMBIO AREA")
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("AT_STATUS");
+            entity.Property(e => e.AtTaxi).HasColumnName("AT_TAXI");
+            entity.Property(e => e.AtTiempo)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("AT_TIEMPO");
+            entity.Property(e => e.AtTiempoReal)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("AT_TIEMPO_REAL");
+            entity.Property(e => e.AtUbicCrea)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .HasComment("--NOMENCLATURA\r\n NULL  CUANDO SOLO SE HISO LA CITA O ES REAGENDA\r\n T HOJA DE TRABAJO SE ABRIO EN BAHIA\r\n C HOJA DE TRABAJO SE ABRIO EN LA CENTRAL  ATENDIMIENTO.")
+                .HasColumnName("AT_UBIC_CREA");
+            entity.Property(e => e.BhCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("BH_CODIGO");
+            entity.Property(e => e.ClCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("CL_CODIGO");
+            entity.Property(e => e.CmCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("CM_CODIGO");
+            entity.Property(e => e.CmcCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("CMC_CODIGO");
+            entity.Property(e => e.EecCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("EEC_CODIGO");
+            entity.Property(e => e.FaCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("FA_CODIGO");
+            entity.Property(e => e.FaCodigoPrea)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("FA_CODIGO_PREA");
+            entity.Property(e => e.FltCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("FLT_CODIGO");
+            entity.Property(e => e.FsCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("FS_CODIGO");
+            entity.Property(e => e.FsCodigoPrea)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("FS_CODIGO_PREA");
+            entity.Property(e => e.HtCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("HT_CODIGO");
+            entity.Property(e => e.IoCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("IO_CODIGO");
+            entity.Property(e => e.IsCodigo)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("IS_CODIGO");
+            entity.Property(e => e.KiCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("KI_CODIGO");
+            entity.Property(e => e.PeCodiCita)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("PE_CODI_CITA");
+            entity.Property(e => e.PeCodiLlam)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("PE_CODI_LLAM");
+            entity.Property(e => e.PfCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("PF_CODIGO");
+            entity.Property(e => e.PmCodigo)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("PM_CODIGO");
+            entity.Property(e => e.ReCodigo)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("RE_CODIGO");
+            entity.Property(e => e.StCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("ST_CODIGO");
+            entity.Property(e => e.TccCodigo).HasColumnName("TCC_CODIGO");
+            entity.Property(e => e.TlCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TL_CODIGO");
+            entity.Property(e => e.UsCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("US_CODIGO");
+            entity.Property(e => e.UsCodigoCarc)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("US_CODIGO_CARC");
+            entity.Property(e => e.UsCodigoGest)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("US_CODIGO_GEST");
+        });
+
+        modelBuilder.Entity<SI_MODELO>(entity =>
+        {
+            entity.HasKey(e => e.MoCodigo).HasFillFactor(80);
+
+            entity.ToTable("SI_MODELO", tb => tb.HasTrigger("tr_Update_Modelo"));
+
+            entity.HasIndex(e => e.MoNombre, "MO_NOMBRE_IX").HasFillFactor(80);
+
+            entity.HasIndex(e => e.TiCodigo, "TI_CODIGO_IX").HasFillFactor(80);
+
+            entity.Property(e => e.MoCodigo)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("MO_CODIGO");
+            entity.Property(e => e.CaCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("CA_CODIGO");
+            entity.Property(e => e.MoCilindraje)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("MO_CILINDRAJE");
+            entity.Property(e => e.MoClase)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("MO_CLASE");
+            entity.Property(e => e.MoCodigoAlt)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("MO_CODIGO_ALT");
+            entity.Property(e => e.MoCombus)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("MO_COMBUS");
+            entity.Property(e => e.MoDescrip)
+                .HasMaxLength(500)
+                .IsUnicode(false)
+                .HasColumnName("MO_DESCRIP");
+            entity.Property(e => e.MoDispPreInst).HasColumnName("MO_DISP_PRE_INST");
+            entity.Property(e => e.MoEje)
+                .HasDefaultValue(0, "DF__SI_MODELO__MO_EJ__405268A3")
+                .HasColumnName("MO_EJE");
+            entity.Property(e => e.MoEliminado).HasColumnName("MO_ELIMINADO");
+            entity.Property(e => e.MoEstado)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("MO_ESTADO");
+            entity.Property(e => e.MoFechMovi)
+                .HasColumnType("datetime")
+                .HasColumnName("MO_FECH_MOVI");
+            entity.Property(e => e.MoGmOb)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("MO_GM_OB");
+            entity.Property(e => e.MoImagen)
+                .HasColumnType("image")
+                .HasColumnName("MO_IMAGEN");
+            entity.Property(e => e.MoImportado)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("MO_IMPORTADO");
+            entity.Property(e => e.MoKmat)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("MO_KMAT");
+            entity.Property(e => e.MoLinkFicha)
+                .IsUnicode(false)
+                .HasColumnName("MO_LINK_FICHA");
+            entity.Property(e => e.MoNoPreag).HasColumnName("MO_NO_PREAG");
+            entity.Property(e => e.MoNombFich)
+                .HasMaxLength(350)
+                .IsUnicode(false)
+                .HasColumnName("MO_NOMB_FICH");
+            entity.Property(e => e.MoNombHomo)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasDefaultValue("")
+                .HasColumnName("MO_NOMB_HOMO");
+            entity.Property(e => e.MoNombre)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("MO_NOMBRE");
+            entity.Property(e => e.MoNombreAlt)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("MO_NOMBRE_ALT");
+            entity.Property(e => e.MoNombreGm)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("MO_NOMBRE_GM");
+            entity.Property(e => e.MoNombreImpo)
+                .HasMaxLength(50)
+                .HasColumnName("MO_NOMBRE_IMPO");
+            entity.Property(e => e.MoPasaje)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("MO_PASAJE");
+            entity.Property(e => e.MoPath)
+                .HasMaxLength(80)
+                .IsUnicode(false)
+                .HasColumnName("MO_PATH");
+            entity.Property(e => e.MoPbv)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasDefaultValue("", "DF_SI_MODELO_MO_PBV")
+                .HasColumnName("MO_PBV");
+            entity.Property(e => e.MoPorcIva)
+                .HasDefaultValue(true)
+                .HasColumnName("MO_PORC_IVA");
+            entity.Property(e => e.MoPreciov)
+                .HasColumnType("money")
+                .HasColumnName("MO_PRECIOV");
+            entity.Property(e => e.MoPreciovS).HasColumnName("MO_PRECIOV_S");
+            entity.Property(e => e.MoProced)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("MO_PROCED");
+            entity.Property(e => e.MoPuntos)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("MO_PUNTOS");
+            entity.Property(e => e.MoRueda)
+                .HasDefaultValue(0, "DF__SI_MODELO__MO_RU__41468CDC")
+                .HasColumnName("MO_RUEDA");
+            entity.Property(e => e.MoSoat).HasColumnName("MO_SOAT");
+            entity.Property(e => e.MoTipo)
+                .HasColumnType("numeric(5, 0)")
+                .HasColumnName("MO_TIPO");
+            entity.Property(e => e.MoTipoClase)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("MO_TIPO_CLASE");
+            entity.Property(e => e.MoTonela)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("MO_TONELA");
+            entity.Property(e => e.OrCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("OR_CODIGO");
+            entity.Property(e => e.PaCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("PA_CODIGO");
+            entity.Property(e => e.TiCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TI_CODIGO");
+            entity.Property(e => e.UsCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("US_CODIGO");
+        });
+
+        modelBuilder.Entity<SI_STICKER>(entity =>
+        {
+            entity.HasKey(e => e.StCodigo).HasFillFactor(80);
+
+            entity.ToTable("SI_STICKER");
+
+            entity.HasIndex(e => e.MoCodigo, "IX_MO_CODIGO").HasFillFactor(80);
+
+            entity.HasIndex(e => e.AiCodigo, "IX_SI_STICKER").HasFillFactor(80);
+
+            entity.HasIndex(e => e.StNumeChas, "IX_SI_STICKER_2").HasFillFactor(80);
+
+            entity.HasIndex(e => e.StSticker, "st_sticker").HasFillFactor(80);
+
+            entity.Property(e => e.StCodigo)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("ST_CODIGO");
+            entity.Property(e => e.AiCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("AI_CODIGO");
+            entity.Property(e => e.AñCodigo).HasColumnName("AÑ_CODIGO");
+            entity.Property(e => e.CoCodigo).HasColumnName("CO_CODIGO");
+            entity.Property(e => e.MoCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("MO_CODIGO");
+            entity.Property(e => e.OrCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("OR_CODIGO");
+            entity.Property(e => e.StChevy)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("ST_CHEVY");
+            entity.Property(e => e.StDisco)
+                .HasMaxLength(50)
+                .HasColumnName("ST_DISCO");
+            entity.Property(e => e.StFechMovi)
+                .HasColumnType("datetime")
+                .HasColumnName("ST_FECH_MOVI");
+            entity.Property(e => e.StNumeChas)
+                .HasMaxLength(50)
+                .HasColumnName("ST_NUME_CHAS");
+            entity.Property(e => e.StNumeMoto)
+                .HasMaxLength(50)
+                .HasColumnName("ST_NUME_MOTO");
+            entity.Property(e => e.StPlaca)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("ST_PLACA");
+            entity.Property(e => e.StSticker)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("ST_STICKER");
+            entity.Property(e => e.UsCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("US_CODIGO");
+        });
+
+        OnModelCreatingPartial(modelBuilder);
     }
+
+
+    
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
