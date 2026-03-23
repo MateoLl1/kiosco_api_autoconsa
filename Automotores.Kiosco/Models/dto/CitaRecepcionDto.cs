@@ -1,4 +1,4 @@
-namespace Automotores.Kiosco.Models
+namespace Automotores.Kiosco.Models.dto
 {
     public class CitaRecepcionDto
     {

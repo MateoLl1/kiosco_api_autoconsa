@@ -1,5 +1,5 @@
 using Automotores.Kiosco.Data;
-using Automotores.Kiosco.Models;
+using Automotores.Kiosco.Models.dto;
 using Microsoft.EntityFrameworkCore;
 
 namespace Automotores.Kiosco.Services

@@ -1,4 +1,6 @@
-﻿using Automotores.Kiosco.Models;using Microsoft.EntityFrameworkCore;
+﻿using Automotores.Kiosco.Models;
+
+using Microsoft.EntityFrameworkCore;
 
 namespace Automotores.Kiosco.Data;
 
@@ -21,6 +23,10 @@ public partial class DataContext : DbContext
     public virtual DbSet<SI_MODELO> SI_MODELO { get; set; }
 
     public virtual DbSet<SI_STICKER> SI_STICKER { get; set; }
+
+    public virtual DbSet<SI_ASIG_TURNO> SI_ASIG_TURNO { get; set; }
+
+    public virtual DbSet<SI_TURNO> SI_TURNO { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1049,11 +1055,100 @@ public partial class DataContext : DbContext
                 .HasColumnName("US_CODIGO");
         });
 
+
+        modelBuilder.Entity<SI_ASIG_TURNO>(entity =>
+        {
+            entity.HasKey(e => e.AsgCodigo).HasFillFactor(80);
+
+            entity.ToTable("SI_ASIG_TURNO");
+
+            entity.Property(e => e.AsgCodigo)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("ASG_CODIGO");
+            entity.Property(e => e.AgCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("AG_CODIGO");
+            entity.Property(e => e.AsgCita)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("ASG_CITA");
+            entity.Property(e => e.AsgEstado)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("ASG_ESTADO");
+            entity.Property(e => e.AsgFechAsig)
+                .HasColumnType("datetime")
+                .HasColumnName("ASG_FECH_ASIG");
+            entity.Property(e => e.AsgFechMovi)
+                .HasColumnType("datetime")
+                .HasColumnName("ASG_FECH_MOVI");
+            entity.Property(e => e.AsgLlegada)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("ASG_LLEGADA");
+            entity.Property(e => e.AsgModulo)
+                .HasMaxLength(5)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("ASG_MODULO");
+            entity.Property(e => e.AsgTime)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("ASG_TIME");
+            entity.Property(e => e.AsgTimeEspe)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("ASG_TIME_ESPE");
+            entity.Property(e => e.CiCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("CI_CODIGO");
+            entity.Property(e => e.ClCodiAseg)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("CL_CODI_ASEG");
+            entity.Property(e => e.TuId)
+                .HasMaxLength(5)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("TU_ID");
+            entity.Property(e => e.UsCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("US_CODIGO");
+        });
+
+        modelBuilder.Entity<SI_TURNO>(entity =>
+        {
+            entity.HasKey(e => e.TuCodigo).HasFillFactor(80);
+
+            entity.ToTable("SI_TURNO");
+
+            entity.Property(e => e.TuCodigo)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TU_CODIGO");
+            entity.Property(e => e.AgCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("AG_CODIGO");
+            entity.Property(e => e.TuCitaLato)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TU_CITA_LATO");
+            entity.Property(e => e.TuConCita)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TU_CON_CITA");
+            entity.Property(e => e.TuFlota)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TU_FLOTA");
+            entity.Property(e => e.TuSinCita)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TU_SIN_CITA");
+        });
+
+
+
+
+        // ANTES DE ESTO DEBE PONER LOS NUEVOS MODELOES 
+
         OnModelCreatingPartial(modelBuilder);
     }
 
 
-    
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
