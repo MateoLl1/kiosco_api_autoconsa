@@ -1,6 +1,6 @@
+using Automotores.Kiosco.Models.request;
 using Automotores.Kiosco.Services;
 using Microsoft.AspNetCore.Mvc;
-using Automotores.Kiosco.Models.request;
 
 namespace Automotores.Kiosco.Controllers
 {
@@ -75,20 +75,34 @@ namespace Automotores.Kiosco.Controllers
         {
             if (request == null)
             {
-                return BadRequest(new { mensaje = "La solicitud es requerida." });
-            }
-
-            if (request.AgenciaId <= 0)
-            {
-                return BadRequest(new { mensaje = "La agencia es requerida." });
-            }
-
-            if (request.CitaId <= 0)
-            {
-                return BadRequest(new { mensaje = "La cita es requerida." });
+                return BadRequest(new
+                {
+                    resultado = "error",
+                    codigo = "REQUEST_INVALIDO",
+                    mensaje = "La solicitud es requerida."
+                });
             }
 
             var resultado = await _turnoConCitaService.RegistrarLlegadaAsync(request.AgenciaId, request.CitaId);
+
+            if (resultado.Resultado == "error")
+            {
+                if (resultado.Codigo == "AGENCIA_REQUERIDA" ||
+                    resultado.Codigo == "CITA_REQUERIDA" ||
+                    resultado.Codigo == "NO_EXISTE" ||
+                    resultado.Codigo == "REQUEST_INVALIDO")
+                {
+                    return BadRequest(resultado);
+                }
+
+                if (resultado.Codigo == "ERR" || resultado.Codigo == "HT")
+                {
+                    return Conflict(resultado);
+                }
+
+                return StatusCode(StatusCodes.Status500InternalServerError, resultado);
+            }
+
             return Ok(resultado);
         }
     }

@@ -19,12 +19,36 @@ namespace Automotores.Kiosco.Services
         {
             if (agenciaId <= 0)
             {
-                throw new ArgumentException("La agencia es requerida.");
+                return new RegistrarLlegadaCitaResponse
+                {
+                    Resultado = "error",
+                    Codigo = "AGENCIA_REQUERIDA",
+                    Mensaje = "La agencia es requerida."
+                };
             }
 
             if (citaId <= 0)
             {
-                throw new ArgumentException("La cita es requerida.");
+                return new RegistrarLlegadaCitaResponse
+                {
+                    Resultado = "error",
+                    Codigo = "CITA_REQUERIDA",
+                    Mensaje = "La cita es requerida."
+                };
+            }
+
+            var existeCita = await _context.SI_AGEND_TECN
+                .AsNoTracking()
+                .AnyAsync(x => x.AtCodigo == citaId);
+
+            if (!existeCita)
+            {
+                return new RegistrarLlegadaCitaResponse
+                {
+                    Resultado = "error",
+                    Codigo = "NO_EXISTE",
+                    Mensaje = "La cita no existe."
+                };
             }
 
             var conexion = _context.Database.GetDbConnection();
@@ -52,6 +76,7 @@ namespace Automotores.Kiosco.Services
                     return new RegistrarLlegadaCitaResponse
                     {
                         Resultado = "error",
+                        Codigo = "SIN_RESPUESTA",
                         Mensaje = "No fue posible procesar la llegada de la cita."
                     };
                 }
@@ -65,6 +90,7 @@ namespace Automotores.Kiosco.Services
                     return new RegistrarLlegadaCitaResponse
                     {
                         Resultado = "error",
+                        Codigo = "RESPUESTA_INVALIDA",
                         Mensaje = "No fue posible procesar la llegada de la cita."
                     };
                 }
@@ -95,6 +121,15 @@ namespace Automotores.Kiosco.Services
                     Resultado = "turno_generado",
                     Turno = idCita,
                     Mensaje = "Se generó el turno de la cita correctamente."
+                };
+            }
+            catch
+            {
+                return new RegistrarLlegadaCitaResponse
+                {
+                    Resultado = "error",
+                    Codigo = "ERROR_INTERNO",
+                    Mensaje = "Ocurrió un error interno al procesar la cita."
                 };
             }
             finally
