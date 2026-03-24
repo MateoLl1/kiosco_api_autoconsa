@@ -1,5 +1,6 @@
 using Automotores.Kiosco.Services;
 using Microsoft.AspNetCore.Mvc;
+using Automotores.Kiosco.Models.request;
 
 namespace Automotores.Kiosco.Controllers
 {
@@ -7,13 +8,16 @@ namespace Automotores.Kiosco.Controllers
     {
         private readonly TurnoService _turnoService;
         private readonly TurnoGeneradorService _turnoGeneradorService;
+        private readonly TurnoConCitaService _turnoConCitaService;
 
         public TurnosController(
             TurnoService turnoService,
-            TurnoGeneradorService turnoGeneradorService)
+            TurnoGeneradorService turnoGeneradorService,
+            TurnoConCitaService turnoConCitaService)
         {
             _turnoService = turnoService;
             _turnoGeneradorService = turnoGeneradorService;
+            _turnoConCitaService = turnoConCitaService;
         }
 
         [HttpGet("recepcion")]
@@ -28,7 +32,6 @@ namespace Automotores.Kiosco.Controllers
             return Ok(lista);
         }
 
-        // 🔥 NUEVO: SIN CITA
         [HttpPost("sin-cita")]
         public async Task<IActionResult> GenerarSinCita([FromQuery] decimal agenciaId)
         {
@@ -48,7 +51,6 @@ namespace Automotores.Kiosco.Controllers
             });
         }
 
-        // 🔥 NUEVO: SIN CITA FLOTAS
         [HttpPost("sin-cita-flotas")]
         public async Task<IActionResult> GenerarSinCitaFlotas([FromQuery] decimal agenciaId)
         {
@@ -66,6 +68,28 @@ namespace Automotores.Kiosco.Controllers
                 tipo = turno.Tipo,
                 fecha = turno.Fecha
             });
+        }
+
+        [HttpPost("recepcion/registrar-llegada")]
+        public async Task<IActionResult> RegistrarLlegada([FromBody] RegistrarLlegadaCitaRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest(new { mensaje = "La solicitud es requerida." });
+            }
+
+            if (request.AgenciaId <= 0)
+            {
+                return BadRequest(new { mensaje = "La agencia es requerida." });
+            }
+
+            if (request.CitaId <= 0)
+            {
+                return BadRequest(new { mensaje = "La cita es requerida." });
+            }
+
+            var resultado = await _turnoConCitaService.RegistrarLlegadaAsync(request.AgenciaId, request.CitaId);
+            return Ok(resultado);
         }
     }
 }
