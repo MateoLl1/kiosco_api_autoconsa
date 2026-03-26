@@ -20,6 +20,7 @@ builder.Services.AddScoped<AgenciaService>();
 builder.Services.AddScoped<TurnoService>();
 builder.Services.AddScoped<TurnoGeneradorService>();
 builder.Services.AddScoped<TurnoConCitaService>();
+builder.Services.AddScoped<PantallaTurnosService>();
 
 
 var app = builder.Build();
