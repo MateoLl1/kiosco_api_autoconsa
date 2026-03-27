@@ -10,5 +10,7 @@ public class PantallaTurnoDto
     public decimal Tiempo { get; set; }
     public string Tipo { get; set; } = string.Empty;
     public bool RequiereCambioEstado { get; set; }
+    public bool EsTurnoActual { get; set; }
+    public string NombreCliente { get; set; } = string.Empty;
+    public DateTime? FechaReferencia { get; set; }
 }
-

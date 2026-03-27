@@ -1,9 +1,7 @@
 using Automotores.Kiosco.Data;
-using Automotores.Kiosco.Models;
 using Automotores.Kiosco.Models.dto;
 using Automotores.Kiosco.Models.request;
 using Microsoft.EntityFrameworkCore;
-using System.Data;
 
 namespace Automotores.Kiosco.Services
 {
@@ -16,50 +14,164 @@ namespace Automotores.Kiosco.Services
             _context = context;
         }
 
-        public async Task<List<PantallaTurnoDto>> ObtenerTurnosPantallaAsync(decimal agenciaId)
+        public async Task<PantallaTurnosResponse> ObtenerTurnosPantallaAsync(decimal agenciaId, DateTime? ultimaFechaAudio = null)
         {
+            var response = new PantallaTurnosResponse();
+
             if (agenciaId <= 0)
             {
-                return new List<PantallaTurnoDto>();
+                return response;
             }
 
-            var horaActual = DateTime.Now.Hour;
-            if (horaActual < 6 || horaActual > 20)
+            var hoy = DateTime.Today;
+
+            var visiblesBase = await _context.SI_ASIG_TURNO
+                .AsNoTracking()
+                .Where(x =>
+                    x.AgCodigo == agenciaId &&
+                    x.UsCodigo != 1 &&
+                    x.TuId != null &&
+                    (x.AsgEstado == "L" || x.AsgEstado == "R") &&
+                    x.AsgModulo != null &&
+                    x.AsgModulo != "N" &&
+                    x.AsgFechMovi != null &&
+                    x.AsgFechMovi.Value.Date == hoy)
+                .Select(x => new
+                {
+                    x.AsgCodigo,
+                    x.TuId,
+                    x.AsgModulo,
+                    x.AsgEstado,
+                    x.AsgTime,
+                    x.CiCodigo,
+                    x.AsgFechMovi,
+                    x.AsgFechAsig,
+                    FechaReferencia = x.AsgFechAsig ?? x.AsgFechMovi
+                })
+                .OrderByDescending(x => x.FechaReferencia)
+                .ThenByDescending(x => x.AsgCodigo)
+                .Take(30)
+                .ToListAsync();
+
+            var turnos = new List<PantallaTurnoDto>();
+
+            foreach (var item in visiblesBase)
             {
-                return new List<PantallaTurnoDto>();
+                var nombreCliente = string.Empty;
+
+                if ((item.CiCodigo ?? 0) > 0)
+                {
+                    nombreCliente = await ObtenerNombreClientePorCitaAsync(item.CiCodigo ?? 0);
+                }
+
+                turnos.Add(new PantallaTurnoDto
+                {
+                    AsgCodigo = item.AsgCodigo,
+                    Turno = (item.TuId ?? string.Empty).Trim(),
+                    Modulo = (item.AsgModulo ?? string.Empty).Trim(),
+                    Estado = (item.AsgEstado ?? string.Empty).Trim(),
+                    Tiempo = item.AsgTime ?? 0,
+                    Tipo = ObtenerTipoDesdeTurno(item.TuId ?? string.Empty),
+                    RequiereCambioEstado = (item.AsgEstado ?? string.Empty).Trim() == "R",
+                    EsTurnoActual = (item.AsgTime ?? 0) > 0,
+                    NombreCliente = nombreCliente,
+                    FechaReferencia = item.FechaReferencia
+                });
             }
 
-            await using var tx = await _context.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted);
+            var turnoActual = turnos
+                .Where(x => x.EsTurnoActual)
+                .OrderByDescending(x => x.FechaReferencia)
+                .ThenByDescending(x => x.AsgCodigo)
+                .FirstOrDefault();
 
-            await _context.Database.ExecuteSqlRawAsync(@"
-UPDATE SI_ASIG_TURNO
-SET ASG_TIME = ASG_TIME - 1
-WHERE ASG_TIME > 0");
+            if (turnoActual == null)
+            {
+                turnoActual = turnos
+                    .OrderByDescending(x => x.FechaReferencia)
+                    .ThenByDescending(x => x.AsgCodigo)
+                    .FirstOrDefault();
+            }
 
-            await _context.Database.ExecuteSqlRawAsync(@"
-UPDATE SI_ASIG_TURNO
-SET ASG_TIME_ESPE = DATEDIFF(MI, ASG_FECH_MOVI, GETDATE())
-WHERE ASG_ESTADO = 'A'");
+            response.TurnoActual = turnoActual;
 
-            var resultado = new List<PantallaTurnoDto>();
-
-            var turnoS = await ObtenerTurnoPorPrefijoAsync(agenciaId, "S", "sin_cita");
-            if (turnoS != null) resultado.Add(turnoS);
-
-            var turnoC = await ObtenerTurnoPorPrefijoAsync(agenciaId, "C", "con_cita");
-            if (turnoC != null) resultado.Add(turnoC);
-
-            var turnoF = await ObtenerTurnoPorPrefijoAsync(agenciaId, "F", "flota");
-            if (turnoF != null) resultado.Add(turnoF);
-
-            var turnoL = await ObtenerTurnoPorPrefijoAsync(agenciaId, "L", "latoneria");
-            if (turnoL != null) resultado.Add(turnoL);
-
-            await tx.CommitAsync();
-
-            return resultado
-                .OrderBy(x => ObtenerOrdenVisual(x.Tipo))
+            response.TurnosRecienLlamados = turnos
+                .Where(x => x.RequiereCambioEstado)
+                .OrderByDescending(x => x.FechaReferencia)
+                .ThenByDescending(x => x.AsgCodigo)
                 .ToList();
+
+            if (turnoActual != null)
+            {
+                var indiceActual = turnos.FindIndex(x => x.AsgCodigo == turnoActual.AsgCodigo);
+                var desde = Math.Max(0, indiceActual - 5);
+                var cantidad = Math.Min(11, turnos.Count - desde);
+
+                response.Turnos = turnos
+                    .Skip(desde)
+                    .Take(cantidad)
+                    .ToList();
+            }
+            else
+            {
+                response.Turnos = turnos
+                    .Take(10)
+                    .ToList();
+            }
+
+            var pendientesBase = await _context.SI_ASIG_TURNO
+                .AsNoTracking()
+                .Where(x =>
+                    x.AgCodigo == agenciaId &&
+                    x.TuId != null &&
+                    x.AsgEstado == "A" &&
+                    x.AsgModulo == "N" &&
+                    x.AsgFechMovi != null &&
+                    x.AsgFechMovi.Value.Date == hoy)
+                .OrderBy(x => x.AsgFechMovi)
+                .ThenBy(x => x.AsgCodigo)
+                .Select(x => new
+                {
+                    x.AsgCodigo,
+                    x.TuId,
+                    x.AsgModulo,
+                    x.AsgEstado,
+                    x.AsgTime,
+                    x.CiCodigo,
+                    x.AsgFechMovi
+                })
+                .Take(5)
+                .ToListAsync();
+
+            var turnosPendientes = new List<PantallaTurnoDto>();
+
+            foreach (var item in pendientesBase)
+            {
+                var nombreCliente = string.Empty;
+
+                if ((item.CiCodigo ?? 0) > 0)
+                {
+                    nombreCliente = await ObtenerNombreClientePorCitaAsync(item.CiCodigo ?? 0);
+                }
+
+                turnosPendientes.Add(new PantallaTurnoDto
+                {
+                    AsgCodigo = item.AsgCodigo,
+                    Turno = (item.TuId ?? string.Empty).Trim(),
+                    Modulo = (item.AsgModulo ?? string.Empty).Trim(),
+                    Estado = (item.AsgEstado ?? string.Empty).Trim(),
+                    Tiempo = item.AsgTime ?? 0,
+                    Tipo = ObtenerTipoDesdeTurno(item.TuId ?? string.Empty),
+                    RequiereCambioEstado = false,
+                    EsTurnoActual = false,
+                    NombreCliente = nombreCliente,
+                    FechaReferencia = item.AsgFechMovi
+                });
+            }
+
+            response.TurnosPendientes = turnosPendientes;
+
+            return response;
         }
 
         public async Task<MarcarTurnoMostradoResponse> MarcarTurnoMostradoAsync(decimal asgCodigo)
@@ -98,37 +210,36 @@ WHERE ASG_ESTADO = 'A'");
             };
         }
 
-        private async Task<PantallaTurnoDto?> ObtenerTurnoPorPrefijoAsync(decimal agenciaId, string prefijo, string tipo)
+        private async Task<string> ObtenerNombreClientePorCitaAsync(decimal ciCodigo)
         {
-            return await _context.SI_ASIG_TURNO
-                .AsNoTracking()
-                .Where(x =>
-                    x.AgCodigo == agenciaId &&
-                    x.UsCodigo != 1 &&
-                    (x.AsgEstado == "L" || x.AsgEstado == "R") &&
-                    x.TuId != null &&
-                    x.TuId.StartsWith(prefijo))
-                .OrderByDescending(x => x.AsgFechMovi)
-                .Select(x => new PantallaTurnoDto
+            var cliente = await (
+                from at in _context.SI_AGEND_TECN.AsNoTracking()
+                join cl in _context.SI_CLIENTE.AsNoTracking() on at.ClCodigo equals cl.ClCodigo
+                where at.AtCodigo == ciCodigo
+                select new
                 {
-                    AsgCodigo = x.AsgCodigo,
-                    Turno = x.TuId ?? string.Empty,
-                    Modulo = x.AsgModulo ?? string.Empty,
-                    Estado = x.AsgEstado ?? string.Empty,
-                    Tiempo = x.AsgTime ?? 0,
-                    Tipo = tipo,
-                    RequiereCambioEstado = x.AsgEstado == "R"
-                })
-                .FirstOrDefaultAsync();
+                    cl.ClNombre,
+                    cl.ClApellido
+                }
+            ).FirstOrDefaultAsync();
+
+            if (cliente == null)
+            {
+                return string.Empty;
+            }
+
+            return $"{(cliente.ClApellido ?? string.Empty).Trim()} {(cliente.ClNombre ?? string.Empty).Trim()}".Trim();
         }
 
-        private static int ObtenerOrdenVisual(string tipo)
+        private static string ObtenerTipoDesdeTurno(string turno)
         {
-            if (tipo == "con_cita") return 1;
-            if (tipo == "flota") return 2;
-            if (tipo == "latoneria") return 2;
-            if (tipo == "sin_cita") return 3;
-            return 99;
+            var valor = turno.Trim().ToUpperInvariant();
+
+            if (valor.StartsWith("C")) return "con_cita";
+            if (valor.StartsWith("S")) return "sin_cita";
+            if (valor.StartsWith("F")) return "flota";
+            if (valor.StartsWith("L")) return "latoneria";
+            return "otro";
         }
     }
 }
