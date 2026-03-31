@@ -9,6 +9,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("KioscoWeb", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("SiacProduccion")
@@ -22,11 +33,12 @@ builder.Services.AddScoped<TurnoGeneradorService>();
 builder.Services.AddScoped<TurnoConCitaService>();
 builder.Services.AddScoped<PantallaTurnosService>();
 
-
 var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
+app.UseCors("KioscoWeb");
 
 // app.UseHttpsRedirection();
 

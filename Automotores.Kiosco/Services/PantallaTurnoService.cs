@@ -218,6 +218,7 @@ namespace Automotores.Kiosco.Services
                 where at.AtCodigo == ciCodigo
                 select new
                 {
+                    cl.ClContacto,
                     cl.ClNombre,
                     cl.ClApellido
                 }
@@ -228,7 +229,7 @@ namespace Automotores.Kiosco.Services
                 return string.Empty;
             }
 
-            return $"{(cliente.ClApellido ?? string.Empty).Trim()} {(cliente.ClNombre ?? string.Empty).Trim()}".Trim();
+            return $"{(cliente.ClContacto ?? string.Empty).Trim()} {(cliente.ClApellido ?? string.Empty).Trim()} {(cliente.ClNombre ?? string.Empty).Trim()}".Trim();
         }
 
         private static string ObtenerTipoDesdeTurno(string turno)
