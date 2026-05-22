@@ -12,11 +12,18 @@ namespace Automotores.Kiosco.Controllers
             _servicio = servicio;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> ObtenerTodos()
+        [HttpGet("por-identificacion")]
+        public async Task<IActionResult> ObtenerPorIdentificacion([FromQuery] string identificacion, [FromQuery] int empresa = 1)
         {
-            var lista = await _servicio.ObtenerTodosAsync();
-            return Ok(lista);
+            if (string.IsNullOrWhiteSpace(identificacion))
+                return BadRequest("La identificación es obligatoria.");
+
+            var resultado = await _servicio.ObtenerPorIdentificacionAsync(identificacion, empresa);
+
+            if (resultado == null)
+                return NotFound("No se encontró información del cliente.");
+
+            return Ok(resultado);
         }
     }
 }

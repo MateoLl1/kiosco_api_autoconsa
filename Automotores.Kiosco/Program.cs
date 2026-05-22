@@ -8,6 +8,7 @@ builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpClient();
 
 builder.Services.AddCors(options =>
 {
@@ -27,6 +28,7 @@ builder.Services.AddDbContext<DataContext>(options =>
 );
 
 builder.Services.AddScoped<ClienteService>();
+builder.Services.AddScoped<KeycloakTokenService>();
 builder.Services.AddScoped<AgenciaService>();
 builder.Services.AddScoped<TurnoService>();
 builder.Services.AddScoped<TurnoGeneradorService>();
