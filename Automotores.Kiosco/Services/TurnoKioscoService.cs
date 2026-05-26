@@ -1,3 +1,4 @@
+using System.Data;
 using Automotores.Kiosco.Data;
 using Automotores.Kiosco.Models;
 using Automotores.Kiosco.Models.dto;
@@ -27,33 +28,59 @@ namespace Automotores.Kiosco.Services
             if (cliente == null)
                 return null;
 
+            var ahora = DateTime.Now;
             var hoy = DateTime.Today;
             var manana = hoy.AddDays(1);
 
-            await using var transaccion = await _context.Database.BeginTransactionAsync();
+            await using var transaccion = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
 
-            var turnosConCita = await _context.SI_ASIG_TURNO
-                .Where(x =>
-                    x.AgCodigo == request.AgenciaId &&
-                    x.TuId != null &&
-                    x.TuId.StartsWith("C-") &&
-                    x.AsgFechMovi != null &&
-                    x.AsgFechMovi >= hoy &&
-                    x.AsgFechMovi < manana)
-                .Select(x => x.TuId)
-                .ToListAsync();
+            var turnoDb = await _context.SI_TURNO
+                .Where(x => x.AgCodigo == request.AgenciaId)
+                .FirstOrDefaultAsync();
 
-            var ultimoNumero = turnosConCita
-                .Select(ObtenerNumeroTurno)
-                .DefaultIfEmpty(0)
-                .Max();
+            if (turnoDb == null)
+                return null;
 
-            var siguienteNumero = ultimoNumero + 1;
+            var contadorActual = (int)(turnoDb.TuConCita ?? 0);
+            var siguienteNumero = contadorActual + 1;
 
-            if (siguienteNumero > 30)
+            if (siguienteNumero == 31)
                 siguienteNumero = 1;
 
+            turnoDb.TuConCita = siguienteNumero;
+
             var turno = $"C-{siguienteNumero}";
+
+            var bahia = await _context.SI_BAHIA
+                .AsNoTracking()
+                .Where(x => x.AgCodigo == request.AgenciaId)
+                .OrderBy(x => x.BhCodigo)
+                .FirstOrDefaultAsync();
+
+            var citaKiosco = new SI_AGEND_TECN
+            {
+                BhCodigo = bahia?.BhCodigo,
+                AtFecha = hoy,
+                AtHoraInicio = ahora.ToString("HH:mm"),
+                AtHoraFin = ahora.AddMinutes(15).ToString("HH:mm"),
+                AtTiempo = "15",
+                TlCodigo = bahia?.TlCodigo ?? 17,
+                AtStatus = 3,
+                UsCodigo = 1,
+                ClCodigo = cliente.ClCodigo,
+                StCodigo = null,
+                HtCodigo = 0,
+                AtTaxi = false,
+                KiCodigo = 0,
+                AtObservacion = "Turno generado desde kiosco",
+                AtCodiRela = 0,
+                AtFechLleg = ahora,
+                AtEstado = "L",
+                AtFechCrea = ahora
+            };
+
+            _context.SI_AGEND_TECN.Add(citaKiosco);
+            await _context.SaveChangesAsync();
 
             var personasPorDelante = await _context.SI_ASIG_TURNO
                 .AsNoTracking()
@@ -71,15 +98,15 @@ namespace Automotores.Kiosco.Services
             {
                 TuId = turno,
                 UsCodigo = 1,
-                AsgFechMovi = DateTime.Now,
+                AsgFechMovi = ahora,
                 AsgModulo = "N",
-                CiCodigo = request.ClCodigo,
+                CiCodigo = citaKiosco.AtCodigo,
                 AgCodigo = request.AgenciaId,
                 AsgEstado = "A",
                 AsgFechAsig = null,
                 AsgTime = 0,
                 AsgTimeEspe = tiempoEstimado,
-                AsgCita = 1,
+                AsgCita = 3,
                 AsgLlegada = 0,
                 ClCodiAseg = 0
             };
@@ -101,21 +128,8 @@ namespace Automotores.Kiosco.Services
                 Modulo = "N",
                 PersonasPorDelante = personasPorDelante,
                 TiempoEstimadoMinutos = tiempoEstimado,
-                Fecha = nuevoTurno.AsgFechMovi ?? DateTime.Now
+                Fecha = nuevoTurno.AsgFechMovi ?? ahora
             };
-        }
-
-        private static int ObtenerNumeroTurno(string? turno)
-        {
-            if (string.IsNullOrWhiteSpace(turno))
-                return 0;
-
-            var valor = turno.Trim().ToUpperInvariant().Replace("C-", "");
-
-            if (int.TryParse(valor, out var numero))
-                return numero;
-
-            return 0;
         }
 
         private static string UnirNombre(string? nombres, string? apellidos)
