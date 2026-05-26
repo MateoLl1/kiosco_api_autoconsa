@@ -32,6 +32,8 @@ namespace Automotores.Kiosco.Services
                     x.AgCodigo == agenciaId &&
                     x.UsCodigo != 1 &&
                     x.TuId != null &&
+                    x.AsgEstado != null &&
+                    x.AsgEstado != "I" &&
                     (x.AsgEstado == "L" || x.AsgEstado == "R") &&
                     x.AsgModulo != null &&
                     x.AsgModulo != "N" &&
@@ -48,7 +50,9 @@ namespace Automotores.Kiosco.Services
                     CiCodigo = x.CiCodigo,
                     AsgFechMovi = x.AsgFechMovi,
                     AsgFechAsig = x.AsgFechAsig,
-                    FechaReferencia = x.AsgFechAsig ?? x.AsgFechMovi
+                    FechaReferencia = x.AsgEstado == "R"
+                        ? x.AsgFechMovi
+                        : x.AsgFechAsig ?? x.AsgFechMovi
                 })
                 .OrderByDescending(x => x.FechaReferencia)
                 .ThenByDescending(x => x.AsgCodigo)
@@ -59,7 +63,7 @@ namespace Automotores.Kiosco.Services
             var turnos = MapearTurnos(visiblesBase, nombresVisibles, true);
 
             var turnoActual = turnos
-                .Where(x => x.EsTurnoActual)
+                .Where(x => x.Estado == "R" && x.EsTurnoActual)
                 .OrderByDescending(x => x.FechaReferencia)
                 .ThenByDescending(x => x.AsgCodigo)
                 .FirstOrDefault();
@@ -67,6 +71,7 @@ namespace Automotores.Kiosco.Services
             if (turnoActual == null)
             {
                 turnoActual = turnos
+                    .Where(x => x.Estado == "R" || x.Estado == "L")
                     .OrderByDescending(x => x.FechaReferencia)
                     .ThenByDescending(x => x.AsgCodigo)
                     .FirstOrDefault();
@@ -75,7 +80,7 @@ namespace Automotores.Kiosco.Services
             response.TurnoActual = turnoActual;
 
             response.TurnosRecienLlamados = turnos
-                .Where(x => x.RequiereCambioEstado)
+                .Where(x => x.Estado == "R" && x.RequiereCambioEstado)
                 .OrderByDescending(x => x.FechaReferencia)
                 .ThenByDescending(x => x.AsgCodigo)
                 .ToList();
@@ -89,11 +94,13 @@ namespace Automotores.Kiosco.Services
                 response.Turnos = turnos
                     .Skip(desde)
                     .Take(cantidad)
+                    .Where(x => x.Estado != "I")
                     .ToList();
             }
             else
             {
                 response.Turnos = turnos
+                    .Where(x => x.Estado != "I")
                     .Take(10)
                     .ToList();
             }
@@ -125,7 +132,9 @@ namespace Automotores.Kiosco.Services
                 .ToListAsync();
 
             var nombresPendientes = await ObtenerNombresClientesAsync(pendientesBase);
-            response.TurnosPendientes = MapearTurnos(pendientesBase, nombresPendientes, false);
+            response.TurnosPendientes = MapearTurnos(pendientesBase, nombresPendientes, false)
+                .Where(x => x.Estado != "I")
+                .ToList();
 
             return response;
         }
@@ -204,16 +213,22 @@ namespace Automotores.Kiosco.Services
                     ? nombres[codigoNombre]
                     : string.Empty;
 
+                var estado = (item.AsgEstado ?? string.Empty).Trim();
+                var tiempo = item.AsgTime ?? 0;
+
+                if (estado == "I")
+                    continue;
+
                 turnos.Add(new PantallaTurnoDto
                 {
                     AsgCodigo = item.AsgCodigo,
                     Turno = (item.TuId ?? string.Empty).Trim(),
                     Modulo = (item.AsgModulo ?? string.Empty).Trim(),
-                    Estado = (item.AsgEstado ?? string.Empty).Trim(),
-                    Tiempo = item.AsgTime ?? 0,
+                    Estado = estado,
+                    Tiempo = tiempo,
                     Tipo = ObtenerTipoDesdeTurno(item.TuId ?? string.Empty),
-                    RequiereCambioEstado = (item.AsgEstado ?? string.Empty).Trim() == "R",
-                    EsTurnoActual = validarActual && (item.AsgTime ?? 0) > 0,
+                    RequiereCambioEstado = estado == "R",
+                    EsTurnoActual = validarActual && estado == "R" && tiempo > 0,
                     NombreCliente = nombreCliente,
                     FechaReferencia = item.FechaReferencia
                 });
