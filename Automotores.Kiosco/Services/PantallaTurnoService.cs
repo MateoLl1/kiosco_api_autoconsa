@@ -24,6 +24,7 @@ namespace Automotores.Kiosco.Services
             }
 
             var hoy = DateTime.Today;
+            var manana = hoy.AddDays(1);
 
             var visiblesBase = await _context.SI_ASIG_TURNO
                 .AsNoTracking()
@@ -35,17 +36,18 @@ namespace Automotores.Kiosco.Services
                     x.AsgModulo != null &&
                     x.AsgModulo != "N" &&
                     x.AsgFechMovi != null &&
-                    x.AsgFechMovi.Value.Date == hoy)
-                .Select(x => new
+                    x.AsgFechMovi >= hoy &&
+                    x.AsgFechMovi < manana)
+                .Select(x => new TurnoPantallaBase
                 {
-                    x.AsgCodigo,
-                    x.TuId,
-                    x.AsgModulo,
-                    x.AsgEstado,
-                    x.AsgTime,
-                    x.CiCodigo,
-                    x.AsgFechMovi,
-                    x.AsgFechAsig,
+                    AsgCodigo = x.AsgCodigo,
+                    TuId = x.TuId,
+                    AsgModulo = x.AsgModulo,
+                    AsgEstado = x.AsgEstado,
+                    AsgTime = x.AsgTime,
+                    CiCodigo = x.CiCodigo,
+                    AsgFechMovi = x.AsgFechMovi,
+                    AsgFechAsig = x.AsgFechAsig,
                     FechaReferencia = x.AsgFechAsig ?? x.AsgFechMovi
                 })
                 .OrderByDescending(x => x.FechaReferencia)
@@ -53,31 +55,8 @@ namespace Automotores.Kiosco.Services
                 .Take(30)
                 .ToListAsync();
 
-            var turnos = new List<PantallaTurnoDto>();
-
-            foreach (var item in visiblesBase)
-            {
-                var nombreCliente = string.Empty;
-
-                if ((item.CiCodigo ?? 0) > 0)
-                {
-                    nombreCliente = await ObtenerNombreClientePorCitaAsync(item.CiCodigo ?? 0);
-                }
-
-                turnos.Add(new PantallaTurnoDto
-                {
-                    AsgCodigo = item.AsgCodigo,
-                    Turno = (item.TuId ?? string.Empty).Trim(),
-                    Modulo = (item.AsgModulo ?? string.Empty).Trim(),
-                    Estado = (item.AsgEstado ?? string.Empty).Trim(),
-                    Tiempo = item.AsgTime ?? 0,
-                    Tipo = ObtenerTipoDesdeTurno(item.TuId ?? string.Empty),
-                    RequiereCambioEstado = (item.AsgEstado ?? string.Empty).Trim() == "R",
-                    EsTurnoActual = (item.AsgTime ?? 0) > 0,
-                    NombreCliente = nombreCliente,
-                    FechaReferencia = item.FechaReferencia
-                });
-            }
+            var nombresVisibles = await ObtenerNombresClientesAsync(visiblesBase);
+            var turnos = MapearTurnos(visiblesBase, nombresVisibles, true);
 
             var turnoActual = turnos
                 .Where(x => x.EsTurnoActual)
@@ -127,34 +106,105 @@ namespace Automotores.Kiosco.Services
                     x.AsgEstado == "A" &&
                     x.AsgModulo == "N" &&
                     x.AsgFechMovi != null &&
-                    x.AsgFechMovi.Value.Date == hoy)
+                    x.AsgFechMovi >= hoy &&
+                    x.AsgFechMovi < manana)
                 .OrderBy(x => x.AsgFechMovi)
                 .ThenBy(x => x.AsgCodigo)
-                .Select(x => new
+                .Select(x => new TurnoPantallaBase
                 {
-                    x.AsgCodigo,
-                    x.TuId,
-                    x.AsgModulo,
-                    x.AsgEstado,
-                    x.AsgTime,
-                    x.CiCodigo,
-                    x.AsgFechMovi
+                    AsgCodigo = x.AsgCodigo,
+                    TuId = x.TuId,
+                    AsgModulo = x.AsgModulo,
+                    AsgEstado = x.AsgEstado,
+                    AsgTime = x.AsgTime,
+                    CiCodigo = x.CiCodigo,
+                    AsgFechMovi = x.AsgFechMovi,
+                    FechaReferencia = x.AsgFechMovi
                 })
-                .Take(5)
+                .Take(10)
                 .ToListAsync();
 
-            var turnosPendientes = new List<PantallaTurnoDto>();
+            var nombresPendientes = await ObtenerNombresClientesAsync(pendientesBase);
+            response.TurnosPendientes = MapearTurnos(pendientesBase, nombresPendientes, false);
 
-            foreach (var item in pendientesBase)
+            return response;
+        }
+
+        private async Task<Dictionary<decimal, string>> ObtenerNombresClientesAsync(List<TurnoPantallaBase> turnos)
+        {
+            var nombres = new Dictionary<decimal, string>();
+
+            var codigosCita = turnos
+                .Where(x => ObtenerTipoDesdeTurno(x.TuId ?? string.Empty) == "con_cita" && (x.CiCodigo ?? 0) > 0)
+                .Select(x => x.CiCodigo!.Value)
+                .Distinct()
+                .ToList();
+
+            if (codigosCita.Any())
             {
-                var nombreCliente = string.Empty;
+                var nombresCita = await (
+                    from at in _context.SI_AGEND_TECN.AsNoTracking()
+                    join cl in _context.SI_CLIENTE.AsNoTracking() on at.ClCodigo equals cl.ClCodigo
+                    where codigosCita.Contains(at.AtCodigo)
+                    select new
+                    {
+                        Codigo = at.AtCodigo,
+                        cl.ClContacto,
+                        cl.ClNombre,
+                        cl.ClApellido
+                    }
+                ).ToListAsync();
 
-                if ((item.CiCodigo ?? 0) > 0)
+                foreach (var item in nombresCita)
                 {
-                    nombreCliente = await ObtenerNombreClientePorCitaAsync(item.CiCodigo ?? 0);
+                    nombres[item.Codigo] = UnirNombreCliente(item.ClContacto, item.ClApellido, item.ClNombre);
                 }
+            }
 
-                turnosPendientes.Add(new PantallaTurnoDto
+            var codigosCliente = turnos
+                .Where(x =>
+                    (ObtenerTipoDesdeTurno(x.TuId ?? string.Empty) == "kiosco" ||
+                     ObtenerTipoDesdeTurno(x.TuId ?? string.Empty) == "sin_cita") &&
+                    (x.CiCodigo ?? 0) > 0)
+                .Select(x => x.CiCodigo!.Value)
+                .Distinct()
+                .ToList();
+
+            if (codigosCliente.Any())
+            {
+                var nombresCliente = await _context.SI_CLIENTE
+                    .AsNoTracking()
+                    .Where(x => codigosCliente.Contains(x.ClCodigo))
+                    .Select(x => new
+                    {
+                        Codigo = x.ClCodigo,
+                        x.ClContacto,
+                        x.ClNombre,
+                        x.ClApellido
+                    })
+                    .ToListAsync();
+
+                foreach (var item in nombresCliente)
+                {
+                    nombres[item.Codigo] = UnirNombreCliente(item.ClContacto, item.ClApellido, item.ClNombre);
+                }
+            }
+
+            return nombres;
+        }
+
+        private static List<PantallaTurnoDto> MapearTurnos(List<TurnoPantallaBase> turnosBase, Dictionary<decimal, string> nombres, bool validarActual)
+        {
+            var turnos = new List<PantallaTurnoDto>();
+
+            foreach (var item in turnosBase)
+            {
+                var codigoNombre = item.CiCodigo ?? 0;
+                var nombreCliente = codigoNombre > 0 && nombres.ContainsKey(codigoNombre)
+                    ? nombres[codigoNombre]
+                    : string.Empty;
+
+                turnos.Add(new PantallaTurnoDto
                 {
                     AsgCodigo = item.AsgCodigo,
                     Turno = (item.TuId ?? string.Empty).Trim(),
@@ -162,74 +212,26 @@ namespace Automotores.Kiosco.Services
                     Estado = (item.AsgEstado ?? string.Empty).Trim(),
                     Tiempo = item.AsgTime ?? 0,
                     Tipo = ObtenerTipoDesdeTurno(item.TuId ?? string.Empty),
-                    RequiereCambioEstado = false,
-                    EsTurnoActual = false,
+                    RequiereCambioEstado = (item.AsgEstado ?? string.Empty).Trim() == "R",
+                    EsTurnoActual = validarActual && (item.AsgTime ?? 0) > 0,
                     NombreCliente = nombreCliente,
-                    FechaReferencia = item.AsgFechMovi
+                    FechaReferencia = item.FechaReferencia
                 });
             }
 
-            response.TurnosPendientes = turnosPendientes;
-
-            return response;
+            return turnos;
         }
 
-        public async Task<MarcarTurnoMostradoResponse> MarcarTurnoMostradoAsync(decimal asgCodigo)
+        private static string UnirNombreCliente(string? contacto, string? apellido, string? nombre)
         {
-            if (asgCodigo <= 0)
-            {
-                return new MarcarTurnoMostradoResponse
-                {
-                    Resultado = "error",
-                    Codigo = "ASG_REQUERIDO",
-                    Mensaje = "El código del turno es requerido."
-                };
-            }
+            var nombreContacto = (contacto ?? string.Empty).Trim();
+            var nombres = (nombre ?? string.Empty).Trim();
+            var apellidos = (apellido ?? string.Empty).Trim();
 
-            var turno = await _context.SI_ASIG_TURNO
-                .FirstOrDefaultAsync(x => x.AsgCodigo == asgCodigo);
+            if (!string.IsNullOrWhiteSpace(nombreContacto))
+                return nombreContacto;
 
-            if (turno == null)
-            {
-                return new MarcarTurnoMostradoResponse
-                {
-                    Resultado = "error",
-                    Codigo = "NO_EXISTE",
-                    Mensaje = "El turno no existe."
-                };
-            }
-
-            turno.AsgEstado = "L";
-            await _context.SaveChangesAsync();
-
-            return new MarcarTurnoMostradoResponse
-            {
-                Resultado = "ok",
-                Codigo = "ACTUALIZADO",
-                Mensaje = "El turno fue marcado como mostrado."
-            };
-        }
-
-        private async Task<string> ObtenerNombreClientePorCitaAsync(decimal ciCodigo)
-        {
-            var cliente = await (
-                from at in _context.SI_AGEND_TECN.AsNoTracking()
-                join cl in _context.SI_CLIENTE.AsNoTracking() on at.ClCodigo equals cl.ClCodigo
-                where at.AtCodigo == ciCodigo
-                select new
-                {
-                    cl.ClContacto,
-                    cl.ClNombre,
-                    cl.ClApellido
-                }
-            ).FirstOrDefaultAsync();
-
-            if (cliente == null)
-            {
-                return string.Empty;
-            }
-
-            return $"{(cliente.ClContacto ?? string.Empty).Trim()} {(cliente.ClApellido ?? string.Empty).Trim()} {(cliente.ClNombre ?? string.Empty).Trim()}".Trim();
+            return $"{nombres} {apellidos}".Trim();
         }
 
         private static string ObtenerTipoDesdeTurno(string turno)
@@ -237,10 +239,24 @@ namespace Automotores.Kiosco.Services
             var valor = turno.Trim().ToUpperInvariant();
 
             if (valor.StartsWith("C")) return "con_cita";
+            if (valor.StartsWith("K")) return "kiosco";
             if (valor.StartsWith("S")) return "sin_cita";
             if (valor.StartsWith("F")) return "flota";
             if (valor.StartsWith("L")) return "latoneria";
             return "otro";
+        }
+
+        private class TurnoPantallaBase
+        {
+            public decimal AsgCodigo { get; set; }
+            public string? TuId { get; set; }
+            public string? AsgModulo { get; set; }
+            public string? AsgEstado { get; set; }
+            public decimal? AsgTime { get; set; }
+            public decimal? CiCodigo { get; set; }
+            public DateTime? AsgFechMovi { get; set; }
+            public DateTime? AsgFechAsig { get; set; }
+            public DateTime? FechaReferencia { get; set; }
         }
     }
 }

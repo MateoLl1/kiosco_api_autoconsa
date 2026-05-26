@@ -30,27 +30,6 @@ namespace Automotores.Kiosco.Controllers
             return Ok(lista);
         }
 
-        [HttpPost("marcar-mostrado")]
-        public async Task<IActionResult> MarcarTurnoMostrado([FromBody] MarcarTurnoMostradoRequest request)
-        {
-            if (request == null)
-            {
-                return BadRequest(new
-                {
-                    resultado = "error",
-                    codigo = "REQUEST_INVALIDO",
-                    mensaje = "La solicitud es requerida."
-                });
-            }
-
-            var resultado = await _pantallaTurnosService.MarcarTurnoMostradoAsync(request.AsgCodigo);
-
-            if (resultado.Resultado == "error")
-            {
-                return BadRequest(resultado);
-            }
-
-            return Ok(resultado);
-        }
+        
     }
 }
