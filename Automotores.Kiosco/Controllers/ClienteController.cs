@@ -13,7 +13,7 @@ namespace Automotores.Kiosco.Controllers
         }
 
         [HttpGet("por-identificacion")]
-        public async Task<IActionResult> ObtenerPorIdentificacion([FromQuery] string identificacion, [FromQuery] int empresa = 1)
+        public async Task<IActionResult> ObtenerPorIdentificacion([FromQuery] string identificacion)
         {
             if (string.IsNullOrWhiteSpace(identificacion))
                 return BadRequest("La identificación es obligatoria.");
@@ -21,7 +21,7 @@ namespace Automotores.Kiosco.Controllers
             var resultado = await _servicio.ObtenerPorIdentificacionAsync(identificacion);
 
             if (resultado == null)
-                return NotFound("No se encontró información del cliente en SI_CLIENTE.");
+                return NotFound("No se encontró información del cliente");
 
             return Ok(resultado);
         }

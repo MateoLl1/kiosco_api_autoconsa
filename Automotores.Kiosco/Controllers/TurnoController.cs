@@ -9,18 +9,15 @@ namespace Automotores.Kiosco.Controllers
         private readonly TurnoService _turnoService;
         private readonly TurnoGeneradorService _turnoGeneradorService;
         private readonly TurnoConCitaService _turnoConCitaService;
-        private readonly TurnoKioscoService _turnoKioscoService;
 
         public TurnosController(
             TurnoService turnoService,
             TurnoGeneradorService turnoGeneradorService,
-            TurnoKioscoService turnoKioscoService,
             TurnoConCitaService turnoConCitaService)
         {
             _turnoService = turnoService;
             _turnoGeneradorService = turnoGeneradorService;
             _turnoConCitaService = turnoConCitaService;
-            _turnoKioscoService = turnoKioscoService;
         }
 
         [HttpGet("recepcion")]
@@ -108,20 +105,6 @@ namespace Automotores.Kiosco.Controllers
 
             return Ok(resultado);
         }
-
-
-
-        [HttpPost("kiosco/generar")]
-        public async Task<IActionResult> GenerarTurnoKiosco([FromBody] GenerarTurnoKioscoRequest request)
-        {
-            var resultado = await _turnoKioscoService.GenerarTurnoAsync(request);
-
-            if (resultado == null)
-                return BadRequest("No se pudo generar el turno.");
-
-            return Ok(resultado);
-        }
-
 
 
     }
