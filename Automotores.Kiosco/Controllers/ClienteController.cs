@@ -18,10 +18,10 @@ namespace Automotores.Kiosco.Controllers
             if (string.IsNullOrWhiteSpace(identificacion))
                 return BadRequest("La identificación es obligatoria.");
 
-            var resultado = await _servicio.ObtenerPorIdentificacionAsync(identificacion, empresa);
+            var resultado = await _servicio.ObtenerPorIdentificacionAsync(identificacion);
 
             if (resultado == null)
-                return NotFound("No se encontró información del cliente.");
+                return NotFound("No se encontró información del cliente en SI_CLIENTE.");
 
             return Ok(resultado);
         }
