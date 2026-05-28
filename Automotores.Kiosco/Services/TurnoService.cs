@@ -6,6 +6,8 @@ namespace Automotores.Kiosco.Services
 {
     public class TurnoService
     {
+        private const int MinutosPromedioPorTurno = 5;
+
         private readonly DataContext _context;
 
         public TurnoService(DataContext context)
@@ -88,12 +90,138 @@ namespace Automotores.Kiosco.Services
                 .ToList();
         }
 
+        public async Task<TurnoClienteDto?> ObtenerTurnoPorIdentificacionAsync(string identificacion, decimal agenciaId)
+        {
+            identificacion = identificacion.Trim();
+
+            if (string.IsNullOrWhiteSpace(identificacion) || agenciaId <= 0)
+                return null;
+
+            var hoy = DateTime.Today;
+            var manana = hoy.AddDays(1);
+
+            var resultado = await (
+                from cliente in _context.SI_CLIENTE.AsNoTracking()
+                join cita in _context.SI_AGEND_TECN.AsNoTracking()
+                    on cliente.ClCodigo equals cita.ClCodigo
+                join turno in _context.SI_ASIG_TURNO.AsNoTracking()
+                    on cita.AtCodigo equals turno.CiCodigo
+                where cliente.ClId == identificacion
+                    && turno.AgCodigo == agenciaId
+                    && turno.TuId != null
+                    && turno.AsgEstado != null
+                    && turno.AsgEstado != "I"
+                    && turno.AsgFechMovi != null
+                    && turno.AsgFechMovi >= hoy
+                    && turno.AsgFechMovi < manana
+                orderby turno.AsgFechMovi descending, turno.AsgCodigo descending
+                select new TurnoClienteDto
+                {
+                    AsgCodigo = turno.AsgCodigo,
+                    Turno = turno.TuId == null ? string.Empty : turno.TuId.Trim(),
+                    Estado = turno.AsgEstado == null ? string.Empty : turno.AsgEstado.Trim(),
+                    Modulo = turno.AsgModulo == null ? string.Empty : turno.AsgModulo.Trim(),
+                    AgenciaId = turno.AgCodigo ?? 0,
+                    Tiempo = turno.AsgTime,
+                    TiempoEspera = turno.AsgTimeEspe,
+                    FechaMovimiento = turno.AsgFechMovi,
+                    FechaAsignacion = turno.AsgFechAsig,
+                    ClCodigo = cliente.ClCodigo,
+                    Identificacion = cliente.ClId,
+                    Cliente = FormatearNombreCompleto(cliente.ClNombre, cliente.ClApellido),
+                    CitaId = cita.AtCodigo,
+                    FechaCita = cita.AtFecha,
+                    HoraCita = cita.AtHoraInicio ?? string.Empty,
+                    Tipo = ObtenerTipoDesdeTurno(turno.TuId),
+                    Area = ObtenerAreaDesdeTurnoYTipoLabor(turno.TuId, cita.TlCodigo)
+                }
+            ).FirstOrDefaultAsync();
+
+            if (resultado == null)
+                return null;
+
+            var personasPorDelante = await CalcularPersonasPorDelanteAsync(
+                agenciaId,
+                resultado.AsgCodigo,
+                hoy,
+                manana
+            );
+
+            resultado.PersonasPorDelante = personasPorDelante;
+            resultado.TiempoEstimadoMinutos = CalcularTiempoEstimado(
+                resultado.Estado,
+                personasPorDelante
+            );
+
+            return resultado;
+        }
+
+        private async Task<int> CalcularPersonasPorDelanteAsync(
+            decimal agenciaId,
+            decimal asgCodigo,
+            DateTime hoy,
+            DateTime manana)
+        {
+            return await _context.SI_ASIG_TURNO
+                .AsNoTracking()
+                .CountAsync(x =>
+                    x.AgCodigo == agenciaId &&
+                    x.AsgEstado == "A" &&
+                    x.AsgModulo == "N" &&
+                    x.AsgFechMovi != null &&
+                    x.AsgFechMovi >= hoy &&
+                    x.AsgFechMovi < manana &&
+                    x.AsgCodigo < asgCodigo);
+        }
+
+        private static int CalcularTiempoEstimado(string estado, int personasPorDelante)
+        {
+            var estadoNormalizado = (estado ?? string.Empty).Trim().ToUpperInvariant();
+
+            if (estadoNormalizado != "A")
+                return 0;
+
+            return (personasPorDelante + 1) * MinutosPromedioPorTurno;
+        }
+
+        private static string ObtenerAreaDesdeTurnoYTipoLabor(string? turno, decimal? tlCodigo)
+        {
+            var valorTurno = (turno ?? string.Empty).Trim().ToUpperInvariant();
+
+            if (valorTurno.StartsWith("F"))
+                return "Flota de Empresa";
+
+            if (tlCodigo == 17)
+                return "Taller / Servicios";
+
+            if (tlCodigo == 18)
+                return "Servicio Rápido";
+
+            if (tlCodigo == 5)
+                return "Taller / Servicios";
+
+            if (tlCodigo == 8)
+                return "Taller / Servicios";
+
+            return "Taller / Servicios";
+        }
+
+        private static string ObtenerTipoDesdeTurno(string? turno)
+        {
+            var valor = (turno ?? string.Empty).Trim().ToUpperInvariant();
+
+            if (valor.StartsWith("C")) return "con_cita";
+            if (valor.StartsWith("S")) return "sin_cita";
+            if (valor.StartsWith("F")) return "flota";
+            if (valor.StartsWith("L")) return "latoneria";
+
+            return "otro";
+        }
+
         private static string FormatearHora(string? hora)
         {
             if (string.IsNullOrWhiteSpace(hora))
-            {
                 return string.Empty;
-            }
 
             return hora.Length >= 5 ? hora[..5] : hora;
         }
@@ -106,6 +234,11 @@ namespace Automotores.Kiosco.Services
             var modeloCorto = modeloLimpio.Length > 20 ? modeloLimpio[..20] + "..." : modeloLimpio;
 
             return $"{clienteCorto} | {modeloCorto}";
+        }
+
+        private static string FormatearNombreCompleto(string? nombre, string? apellido)
+        {
+            return $"{(nombre ?? string.Empty).Trim()} {(apellido ?? string.Empty).Trim()}".Trim();
         }
 
         private static string FormatearBahia(string? bahia)
@@ -136,6 +269,7 @@ namespace Automotores.Kiosco.Services
         {
             if (estatus == 5) return "cancelado";
             if (estatus == 6) return "no_llego";
+
             if (estatus == 1 || estatus == 2)
             {
                 if (tlCodigo == 5) return "mantenimiento";

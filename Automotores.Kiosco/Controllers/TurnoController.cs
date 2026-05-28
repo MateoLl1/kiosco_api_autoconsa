@@ -37,18 +37,15 @@ namespace Automotores.Kiosco.Controllers
         {
             if (agenciaId <= 0)
             {
-                return BadRequest(new { mensaje = "La agencia es requerida." });
+                return BadRequest(new
+                {
+                    mensaje = "La agencia es requerida."
+                });
             }
 
             var turno = await _turnoGeneradorService.GenerarSinCitaAsync(agenciaId);
 
-            return Ok(new
-            {
-                turno = turno.Turno,
-                codigo = turno.AsgCodigo,
-                tipo = turno.Tipo,
-                fecha = turno.Fecha
-            });
+            return Ok(turno);
         }
 
         [HttpPost("sin-cita-flotas")]
@@ -56,18 +53,15 @@ namespace Automotores.Kiosco.Controllers
         {
             if (agenciaId <= 0)
             {
-                return BadRequest(new { mensaje = "La agencia es requerida." });
+                return BadRequest(new
+                {
+                    mensaje = "La agencia es requerida."
+                });
             }
 
             var turno = await _turnoGeneradorService.GenerarSinCitaFlotaAsync(agenciaId);
 
-            return Ok(new
-            {
-                turno = turno.Turno,
-                codigo = turno.AsgCodigo,
-                tipo = turno.Tipo,
-                fecha = turno.Fecha
-            });
+            return Ok(turno);
         }
 
         [HttpPost("recepcion/registrar-llegada")]
@@ -101,6 +95,45 @@ namespace Automotores.Kiosco.Controllers
                 }
 
                 return StatusCode(StatusCodes.Status500InternalServerError, resultado);
+            }
+
+            return Ok(resultado);
+        }
+
+
+
+        [HttpGet("por-identificacion")]
+        public async Task<IActionResult> ObtenerTurnoPorIdentificacion(
+            [FromQuery] string identificacion,
+            [FromQuery] decimal agenciaId)
+        {
+            if (string.IsNullOrWhiteSpace(identificacion))
+            {
+                return BadRequest(new
+                {
+                    mensaje = "La identificación es requerida."
+                });
+            }
+
+            if (agenciaId <= 0)
+            {
+                return BadRequest(new
+                {
+                    mensaje = "La agencia es requerida."
+                });
+            }
+
+            var resultado = await _turnoService.ObtenerTurnoPorIdentificacionAsync(
+                identificacion,
+                agenciaId
+            );
+
+            if (resultado == null)
+            {
+                return NotFound(new
+                {
+                    mensaje = "No se encontró un turno asociado a la identificación enviada."
+                });
             }
 
             return Ok(resultado);
