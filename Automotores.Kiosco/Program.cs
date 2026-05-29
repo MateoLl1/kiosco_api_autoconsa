@@ -34,7 +34,7 @@ builder.Services.AddScoped<TurnoService>();
 builder.Services.AddScoped<TurnoGeneradorService>();
 builder.Services.AddScoped<TurnoConCitaService>();
 builder.Services.AddScoped<PantallaTurnosService>();
-
+builder.Services.AddScoped<WhatsappTurnoService>();
 
 var app = builder.Build();
 
