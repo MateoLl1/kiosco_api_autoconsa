@@ -133,7 +133,8 @@ namespace Automotores.Kiosco.Services
                     FechaCita = cita.AtFecha,
                     HoraCita = cita.AtHoraInicio ?? string.Empty,
                     Tipo = ObtenerTipoDesdeTurno(turno.TuId),
-                    Area = ObtenerAreaDesdeTurnoYTipoLabor(turno.TuId, cita.TlCodigo)
+                    Area = ObtenerAreaDesdeTurnoYTipoLabor(turno.TuId, cita.TlCodigo),
+                    TelefonoCliente = cliente.ClTelefono2 ?? string.Empty
                 }
             ).FirstOrDefaultAsync();
 

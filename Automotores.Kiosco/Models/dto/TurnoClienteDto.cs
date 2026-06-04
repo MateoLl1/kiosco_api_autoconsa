@@ -22,5 +22,7 @@ namespace Automotores.Kiosco.Models.dto
         public string Area { get; set; } = "";
         public int PersonasPorDelante { get; set; }
         public int TiempoEstimadoMinutos { get; set; }
+
+        public string TelefonoCliente { get; set; } = string.Empty;
     }
 }
