@@ -1,12 +1,28 @@
 using Automotores.Kiosco.Data;
 using Automotores.Kiosco.Services;
-using Automotores.KIOSCO.API.Config;
+using Automotores.KIOSCO.API.Options;
 using Automotores.KIOSCO.API.Services;
 using Automotores.KIOSCO.API.Services.Interfaces;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
-using Minio;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+// PERMITIR LECTURA DE ARCHIVOS HASTA 500MB
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 524288000;
+});
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 524288000;
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartHeadersLengthLimit = int.MaxValue;
+});
+
 
 builder.Services.AddControllers();
 

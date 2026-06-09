@@ -1,10 +1,13 @@
 using Automotores.Kiosco.Models.dto;
 
 namespace Automotores.KIOSCO.API.Services.Interfaces;
+
 public interface IMinioService
 {
-    Task<List<ArchivoMinioDto>> ListarAsync(string carpeta);
-    Task<ArchivoMinioDto> SubirAsync(IFormFile archivo, string carpeta);
-    Task<string> ObtenerUrlAsync(string nombreObjeto);
-    Task EliminarAsync(string nombreObjeto);
+    Task<List<BucketMinioDto>> ListarBucketsAsync();
+    Task CrearBucketAsync(string bucket);
+    Task<List<ArchivoMinioDto>> ListarObjetosAsync(string bucket);
+    Task<ArchivoMinioDto> SubirObjetoAsync(string bucket, IFormFile archivo);
+    Task<string> ObtenerUrlAsync(string id);
+    Task EliminarObjetoAsync(string id);
 }
