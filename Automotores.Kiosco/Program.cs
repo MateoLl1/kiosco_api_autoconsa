@@ -1,6 +1,10 @@
 using Automotores.Kiosco.Data;
 using Automotores.Kiosco.Services;
+using Automotores.KIOSCO.API.Config;
+using Automotores.KIOSCO.API.Services;
+using Automotores.KIOSCO.API.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Minio;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +30,11 @@ builder.Services.AddDbContext<DataContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection")
     )
 );
+
+builder.Services.Configure<MinioOptions>(
+    builder.Configuration.GetSection("Minio")
+);
+builder.Services.AddScoped<IMinioService, MinioService>();
 
 builder.Services.AddScoped<ClienteService>();
 builder.Services.AddScoped<KeycloakTokenService>();
