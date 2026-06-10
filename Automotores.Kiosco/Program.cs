@@ -51,7 +51,7 @@ builder.Services.Configure<MinioOptions>(
     builder.Configuration.GetSection("Minio")
 );
 builder.Services.AddScoped<IMinioService, MinioService>();
-
+builder.Services.AddScoped<TurnoLlegadaAutomaticaService>();
 builder.Services.AddScoped<ClienteService>();
 builder.Services.AddScoped<KeycloakTokenService>();
 builder.Services.AddScoped<AgenciaService>();

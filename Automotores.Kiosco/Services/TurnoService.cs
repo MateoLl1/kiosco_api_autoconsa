@@ -15,6 +15,37 @@ namespace Automotores.Kiosco.Services
             _context = context;
         }
 
+        public async Task<decimal?> ObtenerCodigoCitaActivaPorIdentificacionAsync(string identificacion, decimal agenciaId)
+        {
+            identificacion = identificacion.Trim();
+
+            if (string.IsNullOrWhiteSpace(identificacion) || agenciaId <= 0)
+                return null;
+
+            var hoy = DateTime.Today;
+            var manana = hoy.AddDays(1);
+
+            var codigoCita = await (
+                from a in _context.SI_AGEND_TECN.AsNoTracking()
+                join b in _context.SI_CLIENTE.AsNoTracking() on a.ClCodigo equals b.ClCodigo
+                join h in _context.SI_BAHIA.AsNoTracking() on a.BhCodigo equals h.BhCodigo
+                where b.ClId == identificacion
+                    && a.AtFecha >= hoy
+                    && a.AtFecha < manana
+                    && a.TlCodigo.HasValue
+                    && new[] { 5m, 8m, 17m, 18m }.Contains(a.TlCodigo.Value)
+                    && h.AgCodigo == agenciaId
+                    && a.AtStatus.HasValue
+                    && new[] { 1m, 2m, 6m }.Contains(a.AtStatus.Value)
+                    && a.HtCodigo == 0
+                    && a.AtFechLleg == null
+                orderby a.AtHoraInicio, a.AtCodigo
+                select (decimal?)a.AtCodigo
+            ).FirstOrDefaultAsync();
+
+            return codigoCita;
+        }
+
         public async Task<List<CitaRecepcionDto>> ObtenerCitasRecepcionAsync(decimal agenciaId)
         {
             var hoy = DateTime.Today;

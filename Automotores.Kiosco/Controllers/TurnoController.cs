@@ -9,15 +9,18 @@ namespace Automotores.Kiosco.Controllers
         private readonly TurnoService _turnoService;
         private readonly TurnoGeneradorService _turnoGeneradorService;
         private readonly TurnoConCitaService _turnoConCitaService;
+        private readonly TurnoLlegadaAutomaticaService _turnoLlegadaAutomaticaService;
 
         public TurnosController(
             TurnoService turnoService,
             TurnoGeneradorService turnoGeneradorService,
-            TurnoConCitaService turnoConCitaService)
+            TurnoConCitaService turnoConCitaService,
+            TurnoLlegadaAutomaticaService turnoLlegadaAutomaticaService)
         {
             _turnoService = turnoService;
             _turnoGeneradorService = turnoGeneradorService;
             _turnoConCitaService = turnoConCitaService;
+            _turnoLlegadaAutomaticaService = turnoLlegadaAutomaticaService;
         }
 
         [HttpGet("recepcion")]
@@ -100,8 +103,6 @@ namespace Automotores.Kiosco.Controllers
             return Ok(resultado);
         }
 
-
-
         [HttpGet("por-identificacion")]
         public async Task<IActionResult> ObtenerTurnoPorIdentificacion(
             [FromQuery] string identificacion,
@@ -128,6 +129,21 @@ namespace Automotores.Kiosco.Controllers
                 agenciaId
             );
 
+            if (resultado != null)
+            {
+                return Ok(resultado);
+            }
+
+            await _turnoLlegadaAutomaticaService.MarcarLlegadaSiTieneCitaAsync(
+                identificacion,
+                agenciaId
+            );
+
+            resultado = await _turnoService.ObtenerTurnoPorIdentificacionAsync(
+                identificacion,
+                agenciaId
+            );
+
             if (resultado == null)
             {
                 return NotFound(new
@@ -138,7 +154,5 @@ namespace Automotores.Kiosco.Controllers
 
             return Ok(resultado);
         }
-
-
     }
 }
