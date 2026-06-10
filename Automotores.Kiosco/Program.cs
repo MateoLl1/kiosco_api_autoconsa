@@ -1,5 +1,6 @@
 using Automotores.Kiosco.Data;
 using Automotores.Kiosco.Services;
+using Automotores.Kiosco.Services.Turnero;
 using Automotores.KIOSCO.API.Options;
 using Automotores.KIOSCO.API.Services;
 using Automotores.KIOSCO.API.Services.Interfaces;
@@ -51,14 +52,19 @@ builder.Services.Configure<MinioOptions>(
     builder.Configuration.GetSection("Minio")
 );
 builder.Services.AddScoped<IMinioService, MinioService>();
-builder.Services.AddScoped<TurnoLlegadaAutomaticaService>();
 builder.Services.AddScoped<ClienteService>();
 builder.Services.AddScoped<KeycloakTokenService>();
 builder.Services.AddScoped<AgenciaService>();
+
 builder.Services.AddScoped<TurnoService>();
-builder.Services.AddScoped<TurnoGeneradorService>();
 builder.Services.AddScoped<TurnoConCitaService>();
+builder.Services.AddScoped<TurnoGeneradorService>();
+builder.Services.AddScoped<TurnoLlegadaAutomaticaService>();
+builder.Services.AddScoped<TurneroMediaService>();
+
 builder.Services.AddScoped<PantallaTurnosService>();
+
+
 builder.Services.AddScoped<WhatsappTurnoService>();
 
 var app = builder.Build();

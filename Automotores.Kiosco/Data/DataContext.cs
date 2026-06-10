@@ -27,7 +27,8 @@ public partial class DataContext : DbContext
     public virtual DbSet<SI_ASIG_TURNO> SI_ASIG_TURNO { get; set; }
 
     public virtual DbSet<SI_TURNO> SI_TURNO { get; set; }
-
+    
+    public virtual DbSet<SI_TURNERO_MEDIA> SI_TURNERO_MEDIA { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<SI_AGENCIA>(entity =>
@@ -1138,6 +1139,41 @@ public partial class DataContext : DbContext
             entity.Property(e => e.TuSinCita)
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("TU_SIN_CITA");
+        });
+
+
+        modelBuilder.Entity<SI_TURNERO_MEDIA>(entity =>
+        {
+            entity.HasKey(e => e.TmCodigo);
+
+            entity.ToTable("SI_TURNERO_MEDIA");
+
+            entity.Property(e => e.TmCodigo).HasColumnName("TM_CODIGO");
+            entity.Property(e => e.AgCodigo).HasColumnName("AG_CODIGO");
+            entity.Property(e => e.TmBucket)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("TM_BUCKET");
+            entity.Property(e => e.TmEstado)
+                .HasMaxLength(1)
+                .IsFixedLength()
+                .HasColumnName("TM_ESTADO");
+            entity.Property(e => e.TmFecha)
+                .HasColumnType("datetime")
+                .HasColumnName("TM_FECHA");
+            entity.Property(e => e.TmModificacion)
+                .HasColumnType("datetime")
+                .HasColumnName("TM_MODIFICACION");
+            entity.Property(e => e.TmObjId)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("TM_OBJ_ID");
+            entity.Property(e => e.TmOrden).HasColumnName("TM_ORDEN");
+            entity.Property(e => e.TmTipo)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("TM_TIPO");
+            entity.Property(e => e.UsCodigo).HasColumnName("US_CODIGO");
         });
 
 
