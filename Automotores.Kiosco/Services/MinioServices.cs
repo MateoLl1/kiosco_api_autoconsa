@@ -77,6 +77,7 @@ public class MinioService : IMinioService
 
                 archivos.Add(new ArchivoMinioDto
                 {
+                    Bucket = bucket,
                     Id = id,
                     Url = await ObtenerUrlPorNombreObjetoAsync(bucket, item.Key),
                     Tipo = ObtenerTipo(item.Key),
@@ -112,6 +113,7 @@ public class MinioService : IMinioService
 
         return new ArchivoMinioDto
         {
+            Bucket = bucket,
             Id = id,
             Url = await ObtenerUrlPorNombreObjetoAsync(bucket, id),
             Tipo = ObtenerTipo(id),
@@ -131,6 +133,37 @@ public class MinioService : IMinioService
             throw new InvalidOperationException("El objeto no existe.");
 
         return await ObtenerUrlPorNombreObjetoAsync(ubicacion.Bucket, ubicacion.NombreObjeto);
+    }
+
+    public async Task<ArchivoMinioContenidoDto> DescargarObjetoAsync(string id)
+    {
+        ValidarIdObjeto(id);
+
+        var ubicacion = await BuscarObjetoEnBucketsAsync(id);
+
+        if (ubicacion == null)
+            throw new InvalidOperationException("El objeto no existe.");
+
+        var memoria = new MemoryStream();
+
+        var args = new GetObjectArgs()
+            .WithBucket(ubicacion.Bucket)
+            .WithObject(ubicacion.NombreObjeto)
+            .WithCallbackStream(stream =>
+            {
+                stream.CopyTo(memoria);
+            });
+
+        await _minioClient.GetObjectAsync(args);
+
+        memoria.Position = 0;
+
+        return new ArchivoMinioContenidoDto
+        {
+            Contenido = memoria,
+            ContentType = ObtenerContentType(ubicacion.NombreObjeto),
+            NombreArchivo = ubicacion.NombreObjeto
+        };
     }
 
     public async Task EliminarObjetoAsync(string id)
@@ -264,6 +297,43 @@ public class MinioService : IMinioService
         }
 
         return "desconocido";
+    }
+
+    private static string ObtenerContentType(string nombreArchivo)
+    {
+        var extension = Path.GetExtension(nombreArchivo).ToLower();
+
+        if (extension == ".jpg" || extension == ".jpeg")
+            return "image/jpeg";
+
+        if (extension == ".png")
+            return "image/png";
+
+        if (extension == ".webp")
+            return "image/webp";
+
+        if (extension == ".mp4")
+            return "video/mp4";
+
+        if (extension == ".webm")
+            return "video/webm";
+
+        if (extension == ".mp3")
+            return "audio/mpeg";
+
+        if (extension == ".wav")
+            return "audio/wav";
+
+        if (extension == ".ogg")
+            return "audio/ogg";
+
+        if (extension == ".m4a")
+            return "audio/mp4";
+
+        if (extension == ".pdf")
+            return "application/pdf";
+
+        return "application/octet-stream";
     }
 
     private class UbicacionObjetoMinio

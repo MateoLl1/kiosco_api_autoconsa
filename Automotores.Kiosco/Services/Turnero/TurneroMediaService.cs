@@ -46,21 +46,7 @@ namespace Automotores.Kiosco.Services.Turnero
                 .ThenBy(x => x.TmCodigo)
                 .ToListAsync();
 
-            var resultado = new List<TurneroMediaDto>();
-
-            foreach (var item in lista)
-            {
-                var dto = Mapear(item);
-
-                if (!string.IsNullOrWhiteSpace(dto.ObjetoId))
-                {
-                    dto.Url = await _minioService.ObtenerUrlAsync(dto.ObjetoId);
-                }
-
-                resultado.Add(dto);
-            }
-
-            return resultado;
+            return lista.Select(Mapear).ToList();
         }
 
         public async Task<TurneroMediaDto> CrearAsync(CrearTurneroMediaRequest request, IFormFile archivo)
@@ -172,8 +158,8 @@ namespace Automotores.Kiosco.Services.Turnero
                         x.TmTipo == "video" &&
                         x.TmEstado == "A");
 
-                if (cantidadVideos >= 1)
-                    throw new InvalidOperationException("Solo se permite 1 video activo por agencia.");
+                if (cantidadVideos >= 2)
+                    throw new InvalidOperationException("Solo se permite 2 video activo por agencia.");
             }
         }
 
@@ -219,5 +205,49 @@ namespace Automotores.Kiosco.Services.Turnero
                 Modificacion = entidad.TmModificacion
             };
         }
+
+
+
+        public async Task ReordenarAsync(ReordenarTurneroMediaRequest request)
+        {
+            if (request.AgenciaId <= 0)
+                throw new InvalidOperationException("La agencia es requerida.");
+
+            if (request.Items == null || request.Items.Count == 0)
+                throw new InvalidOperationException("No existen elementos para reordenar.");
+
+            var codigos = request.Items
+                .Select(x => x.Codigo)
+                .Distinct()
+                .ToList();
+
+            var registros = await _context.SI_TURNERO_MEDIA
+                .Where(x =>
+                    x.AgCodigo == request.AgenciaId &&
+                    x.TmEstado == "A" &&
+                    codigos.Contains(x.TmCodigo))
+                .ToListAsync();
+
+            if (registros.Count != codigos.Count)
+                throw new InvalidOperationException("Uno o más registros no pertenecen a la agencia seleccionada.");
+
+            var orden = 1;
+
+            foreach (var item in request.Items.OrderBy(x => x.Orden))
+            {
+                var registro = registros.FirstOrDefault(x => x.TmCodigo == item.Codigo);
+
+                if (registro == null)
+                    continue;
+
+                registro.TmOrden = orden;
+                registro.TmModificacion = DateTime.Now;
+
+                orden++;
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

@@ -1,5 +1,6 @@
 using Automotores.Kiosco.Controllers;
 using Automotores.KIOSCO.API.Services.Interfaces;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Automotores.KIOSCO.API.Controllers;
@@ -50,6 +51,25 @@ public class MinioController : BaseController
     {
         var url = await _minioService.ObtenerUrlAsync(id);
         return Ok(new { Url = url });
+    }
+
+    [HttpGet("objetos/{id}/contenido")]
+    public async Task<IActionResult> ObtenerContenido(string id)
+    {
+        try
+        {
+            var archivo = await _minioService.DescargarObjetoAsync(id);
+
+            return File(
+                archivo.Contenido,
+                archivo.ContentType,
+                enableRangeProcessing: true
+            );
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { Mensaje = ex.Message });
+        }
     }
 
     [HttpDelete("objetos/{id}")]

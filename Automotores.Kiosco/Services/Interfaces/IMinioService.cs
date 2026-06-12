@@ -10,4 +10,6 @@ public interface IMinioService
     Task<ArchivoMinioDto> SubirObjetoAsync(string bucket, IFormFile archivo);
     Task<string> ObtenerUrlAsync(string id);
     Task EliminarObjetoAsync(string id);
+
+    Task<ArchivoMinioContenidoDto> DescargarObjetoAsync(string id);
 }
