@@ -1,9 +1,8 @@
 using Automotores.Kiosco.Data;
+using Automotores.Kiosco.Options;
 using Automotores.Kiosco.Services;
+using Automotores.Kiosco.Services.Interfaces;
 using Automotores.Kiosco.Services.Turnero;
-using Automotores.KIOSCO.API.Options;
-using Automotores.KIOSCO.API.Services;
-using Automotores.KIOSCO.API.Services.Interfaces;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 

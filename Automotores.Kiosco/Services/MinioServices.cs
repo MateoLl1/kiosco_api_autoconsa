@@ -1,12 +1,12 @@
 using Automotores.Kiosco.Models.dto;
-using Automotores.KIOSCO.API.Options;
-using Automotores.KIOSCO.API.Services.Interfaces;
+using Automotores.Kiosco.Options;
+using Automotores.Kiosco.Services.Interfaces;
 using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
 using System.Text.RegularExpressions;
 
-namespace Automotores.KIOSCO.API.Services;
+namespace Automotores.Kiosco.Services;
 
 public class MinioService : IMinioService
 {

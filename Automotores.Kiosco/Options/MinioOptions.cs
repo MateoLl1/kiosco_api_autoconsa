@@ -1,4 +1,4 @@
-namespace Automotores.KIOSCO.API.Options;
+namespace Automotores.Kiosco.Options;
 
 public class MinioOptions
 {

@@ -4,7 +4,7 @@ using Automotores.Kiosco.Services.Turnero;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Automotores.KIOSCO.API.Controllers
+namespace Automotores.Kiosco.Controllers
 {
     [ApiController]
     public class TurneroMediaController : BaseController

@@ -2,7 +2,7 @@ using Automotores.Kiosco.Data;
 using Automotores.Kiosco.Models;
 using Automotores.Kiosco.Models.dto;
 using Automotores.Kiosco.Models.request;
-using Automotores.KIOSCO.API.Services.Interfaces;
+using Automotores.Kiosco.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Automotores.Kiosco.Services.Turnero

@@ -1,9 +1,7 @@
-using Automotores.Kiosco.Controllers;
-using Automotores.KIOSCO.API.Services.Interfaces;
-using Microsoft.AspNetCore.Http.Features;
+using Automotores.Kiosco.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Automotores.KIOSCO.API.Controllers;
+namespace Automotores.Kiosco.Controllers;
 
 [ApiController]
 public class MinioController : BaseController

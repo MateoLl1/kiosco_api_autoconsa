@@ -1,6 +1,6 @@
 using Automotores.Kiosco.Models.dto;
 
-namespace Automotores.KIOSCO.API.Services.Interfaces;
+namespace Automotores.Kiosco.Services.Interfaces;
 
 public interface IMinioService
 {
