@@ -1,8 +1,14 @@
 using Automotores.Kiosco.Data;
-using Automotores.Kiosco.Options;
-using Automotores.Kiosco.Services;
-using Automotores.Kiosco.Services.Interfaces;
-using Automotores.Kiosco.Services.Turnero;
+using Automotores.Kiosco.Modules.Agencias.Services;
+using Automotores.Kiosco.Modules.Clientes.Services;
+using Automotores.Kiosco.Modules.Minio.Interfaces;
+using Automotores.Kiosco.Modules.Minio.Options;
+using Automotores.Kiosco.Modules.Minio.Services;
+using Automotores.Kiosco.Modules.PantallaTurnos.Services;
+using Automotores.Kiosco.Modules.Seguridad.Services;
+using Automotores.Kiosco.Modules.TurnoMedia.Services;
+using Automotores.Kiosco.Modules.Turnos.Services;
+using Automotores.Kiosco.Modules.Whatsapp.Services;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 

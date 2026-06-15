@@ -1,7 +1,5 @@
-using Automotores.Kiosco.Controllers;
-using Automotores.Kiosco.Models.request;
-using Automotores.Kiosco.Services.Turnero;
-using Microsoft.AspNetCore.Http.Features;
+using Automotores.Kiosco.Modules.TurnoMedia.Requests;
+using Automotores.Kiosco.Modules.TurnoMedia.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Automotores.Kiosco.Controllers

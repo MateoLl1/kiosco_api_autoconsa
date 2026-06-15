@@ -1,5 +1,4 @@
-using Automotores.Kiosco.Models.request;
-using Automotores.Kiosco.Services;
+using Automotores.Kiosco.Modules.PantallaTurnos.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Automotores.Kiosco.Controllers

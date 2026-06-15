@@ -1,4 +1,4 @@
-using Automotores.Kiosco.Services.Interfaces;
+using Automotores.Kiosco.Modules.Minio.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Automotores.Kiosco.Controllers;

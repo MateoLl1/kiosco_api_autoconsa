@@ -1,4 +1,4 @@
-using Automotores.Kiosco.Services;
+using Automotores.Kiosco.Modules.Agencias.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Automotores.Kiosco.Controllers
