@@ -11,16 +11,21 @@ namespace Automotores.Kiosco.Controllers
         private readonly TurnoConCitaService _turnoConCitaService;
         private readonly TurnoLlegadaAutomaticaService _turnoLlegadaAutomaticaService;
 
+        private readonly TurnoAtencionService _turnoAtencionService;
+
         public TurnosController(
             TurnoService turnoService,
             TurnoGeneradorService turnoGeneradorService,
             TurnoConCitaService turnoConCitaService,
-            TurnoLlegadaAutomaticaService turnoLlegadaAutomaticaService)
+            TurnoLlegadaAutomaticaService turnoLlegadaAutomaticaService,
+            TurnoAtencionService turnoAtencionService
+            )
         {
             _turnoService = turnoService;
             _turnoGeneradorService = turnoGeneradorService;
             _turnoConCitaService = turnoConCitaService;
             _turnoLlegadaAutomaticaService = turnoLlegadaAutomaticaService;
+            _turnoAtencionService = turnoAtencionService;
         }
 
         [HttpGet("recepcion")]
@@ -154,5 +159,91 @@ namespace Automotores.Kiosco.Controllers
 
             return Ok(resultado);
         }
+
+
+        [HttpPost("llamar-siguiente")]
+        public async Task<IActionResult> LlamarSiguiente([FromQuery] decimal agenciaId)
+        {
+            if (agenciaId <= 0)
+            {
+                return BadRequest(new
+                {
+                    mensaje = "La agencia es requerida."
+                });
+            }
+
+            try
+            {
+                var resultado = await _turnoAtencionService.LlamarSiguienteAsync(agenciaId);
+
+                if (resultado == null)
+                {
+                    return NotFound(new
+                    {
+                        mensaje = "No existen turnos pendientes."
+                    });
+                }
+
+                return Ok(resultado);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new
+                {
+                    mensaje = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("{asgCodigo}/rellamar")]
+        public async Task<IActionResult> Rellamar(decimal asgCodigo)
+        {
+            if (asgCodigo <= 0)
+            {
+                return BadRequest(new
+                {
+                    mensaje = "El código del turno es requerido."
+                });
+            }
+
+            var resultado = await _turnoAtencionService.RellamarAsync(asgCodigo);
+
+            if (resultado == null)
+            {
+                return NotFound(new
+                {
+                    mensaje = "No se encontró un turno válido para rellamar."
+                });
+            }
+
+            return Ok(resultado);
+        }
+
+
+        [HttpPost("{asgCodigo}/atender")]
+        public async Task<IActionResult> Atender(decimal asgCodigo)
+        {
+            if (asgCodigo <= 0)
+            {
+                return BadRequest(new
+                {
+                    mensaje = "El código del turno es requerido."
+                });
+            }
+
+            var resultado = await _turnoAtencionService.AtenderAsync(asgCodigo);
+
+            if (resultado == null)
+            {
+                return NotFound(new
+                {
+                    mensaje = "No se encontró un turno válido para atender."
+                });
+            }
+
+            return Ok(resultado);
+        }
+
+
     }
 }

@@ -46,7 +46,7 @@ Este proyecto utiliza Entity Framework Core en modo Database First contra la bas
 dotnet ef dbcontext scaffold "Server=serv-desarrollo;Database=siac_electro;User Id=mllerena;Password=Auto2525;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -o Models -c DataContext --context-dir Data --no-onconfiguring -t SI_AGENDA -t SI_CLIENTE -t SI_BAHIA -t SI_AGENCIA -f
 ```
 
-2. ⚠️ Uso de tablas específicas
+2. ⚠️ Uso de tablas específicas (ESTA HAY QUE USAR)
 ```
 dotnet ef dbcontext scaffold "Server=serv-desarrollo;Database=siac_electro;User Id=mllerena;Password=Auto2525;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -o ModelsTemp -c DataContextTemp --context-dir DataTemp --no-onconfiguring -t SI_AGEND_TECN -t SI_STICKER -t SI_MODELO
 ```

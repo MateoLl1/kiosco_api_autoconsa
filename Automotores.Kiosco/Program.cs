@@ -66,6 +66,8 @@ builder.Services.AddScoped<TurnoConCitaService>();
 builder.Services.AddScoped<TurnoGeneradorService>();
 builder.Services.AddScoped<TurnoLlegadaAutomaticaService>();
 builder.Services.AddScoped<TurneroMediaService>();
+builder.Services.AddScoped<TurnoAtencionService>();
+
 
 builder.Services.AddScoped<PantallaTurnosService>();
 
