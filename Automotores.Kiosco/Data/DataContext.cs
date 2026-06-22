@@ -29,6 +29,10 @@ public partial class DataContext : DbContext
     public virtual DbSet<SI_TURNO> SI_TURNO { get; set; }
     
     public virtual DbSet<SI_TURNERO_MEDIA> SI_TURNERO_MEDIA { get; set; }
+
+    public virtual DbSet<SEG_PARAMETRO_USUARIO> SEG_PARAMETRO_USUARIO { get; set; }
+
+    public virtual DbSet<SEG_USUARIO> SEG_USUARIO { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<SI_AGENCIA>(entity =>
@@ -1174,6 +1178,214 @@ public partial class DataContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("TM_TIPO");
             entity.Property(e => e.UsCodigo).HasColumnName("US_CODIGO");
+        });
+
+
+        modelBuilder.Entity<SEG_PARAMETRO_USUARIO>(entity =>
+        {
+            entity.HasKey(e => e.PuCodigo).HasFillFactor(90);
+
+            entity.ToTable("SEG_PARAMETRO_USUARIO");
+
+            entity.HasIndex(e => new { e.UsCodigo, e.AgCodigo }, "IX_SEG_PARAMETRO_USUARIO")
+                .IsUnique()
+                .HasFillFactor(90);
+
+            entity.Property(e => e.PuCodigo)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("PU_CODIGO");
+            entity.Property(e => e.AgCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("AG_CODIGO");
+            entity.Property(e => e.PuAgenDefa)
+                .HasComment("Agencia del usuario por defecto")
+                .HasColumnName("PU_AGEN_DEFA");
+            entity.Property(e => e.PuBahia)
+                .HasMaxLength(100)
+                .HasColumnName("PU_BAHIA");
+            entity.Property(e => e.PuCaja)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("PU_CAJA");
+            entity.Property(e => e.PuDatabase)
+                .HasMaxLength(100)
+                .HasColumnName("PU_DATABASE");
+            entity.Property(e => e.PuModulo)
+                .HasMaxLength(20)
+                .HasColumnName("PU_MODULO");
+            entity.Property(e => e.PuPassword)
+                .HasMaxLength(100)
+                .HasColumnName("PU_PASSWORD");
+            entity.Property(e => e.PuTransito)
+                .HasMaxLength(20)
+                .HasColumnName("PU_TRANSITO");
+            entity.Property(e => e.PuUbicgeo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("PU_UBICGEO");
+            entity.Property(e => e.PuUsuario)
+                .HasMaxLength(100)
+                .HasColumnName("PU_USUARIO");
+            entity.Property(e => e.UsCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("US_CODIGO");
+
+            entity.HasOne(d => d.UsCodigoNavigation).WithMany(p => p.SegParametroUsuarios)
+                .HasForeignKey(d => d.UsCodigo)
+                .HasConstraintName("FK_SEG_PARAMETRO_USUARIO_seg_usuarios");
+        });
+
+        modelBuilder.Entity<SEG_USUARIO>(entity =>
+        {
+            entity.HasKey(e => e.UsCodigo).HasFillFactor(80);
+
+            entity.ToTable("seg_usuarios");
+
+            entity.HasIndex(e => e.UsRuc, "indBusquedaRUC");
+
+            entity.Property(e => e.UsCodigo)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("us_codigo");
+            entity.Property(e => e.CcCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("cc_codigo");
+            entity.Property(e => e.GrCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("gr_codigo");
+            entity.Property(e => e.UsAcc).HasColumnName("US_ACC");
+            entity.Property(e => e.UsAgenPremium)
+                .HasMaxLength(5)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("US_AGEN_PREMIUM");
+            entity.Property(e => e.UsAjusBloq).HasColumnName("us_ajus_bloq");
+            entity.Property(e => e.UsBloqOrdeComp)
+                .HasComment("Si el usuario tiene permiso de desbloquear ordenes de compra")
+                .HasColumnName("us_bloq_orde_comp");
+            entity.Property(e => e.UsCambIva)
+                .HasDefaultValue(false, "DF_seg_usuarios_US_CAMB_IVA")
+                .HasColumnName("US_CAMB_IVA");
+            entity.Property(e => e.UsCobroDeduc).HasColumnName("us_cobro_deduc");
+            entity.Property(e => e.UsCodiCrea)
+                .HasColumnType("decimal(18, 0)")
+                .HasColumnName("US_CODI_CREA");
+            entity.Property(e => e.UsCodiModi)
+                .HasColumnType("decimal(18, 0)")
+                .HasColumnName("US_CODI_MODI");
+            entity.Property(e => e.UsComp).HasColumnName("US_COMP");
+            entity.Property(e => e.UsCompRepu)
+                .HasDefaultValue((short)0, "DF_seg_usuarios_us_comp_repu")
+                .HasColumnName("us_comp_repu");
+            entity.Property(e => e.UsCondInte).HasColumnName("us_cond_inte");
+            entity.Property(e => e.UsContAcci)
+                .HasDefaultValue(0m, "DF_seg_usuarios_US_CONT_ACCI")
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("US_CONT_ACCI");
+            entity.Property(e => e.UsDescAuto).HasColumnName("US_DESC_AUTO");
+            entity.Property(e => e.UsDescMoi).HasColumnName("US_DESC_MOI");
+            entity.Property(e => e.UsDescRep).HasColumnName("US_DESC_REP");
+            entity.Property(e => e.UsDescTarjCred).HasColumnName("us_desc_tarj_cred");
+            entity.Property(e => e.UsDescrip)
+                .HasMaxLength(120)
+                .IsUnicode(false)
+                .HasColumnName("us_descrip");
+            entity.Property(e => e.UsDescuento)
+                .HasDefaultValue(0m, "DF_seg_usuarios_us_descuento")
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("us_descuento");
+            entity.Property(e => e.UsDevoAntiEfec).HasColumnName("us_devo_anti_efec");
+            entity.Property(e => e.UsExepCaja).HasColumnName("US_EXEP_CAJA");
+            entity.Property(e => e.UsExepcion).HasColumnName("us_exepcion");
+            entity.Property(e => e.UsFactGaraGm).HasColumnName("US_FACT_GARA_GM");
+            entity.Property(e => e.UsFactSinDeduc).HasColumnName("us_fact_sin_deduc");
+            entity.Property(e => e.UsFechCrea)
+                .HasColumnType("datetime")
+                .HasColumnName("US_FECH_CREA");
+            entity.Property(e => e.UsFechModi)
+                .HasColumnType("datetime")
+                .HasColumnName("US_FECH_MODI");
+            entity.Property(e => e.UsFlota)
+                .HasMaxLength(5)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("US_FLOTA");
+            entity.Property(e => e.UsImprHtPant).HasColumnName("us_impr_HT_pant");
+            entity.Property(e => e.UsLinkId)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("us_link_id");
+            entity.Property(e => e.UsLinkPass)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("us_link_pass");
+            entity.Property(e => e.UsLinkReun)
+                .HasMaxLength(1000)
+                .IsUnicode(false)
+                .HasColumnName("us_link_reun");
+            entity.Property(e => e.UsLiquComp).HasColumnName("us_liqu_comp");
+            entity.Property(e => e.UsLogin)
+                .HasMaxLength(15)
+                .IsUnicode(false)
+                .HasColumnName("us_login");
+            entity.Property(e => e.UsMail)
+                .HasMaxLength(100)
+                .HasColumnName("us_mail");
+            entity.Property(e => e.UsModiDiar).HasColumnName("US_MODI_DIAR");
+            entity.Property(e => e.UsMontDesc).HasColumnName("US_MONT_DESC");
+            entity.Property(e => e.UsNombre)
+                .HasMaxLength(150)
+                .IsUnicode(false)
+                .HasColumnName("us_nombre");
+            entity.Property(e => e.UsPassword)
+                .HasMaxLength(8)
+                .IsUnicode(false)
+                .HasColumnName("us_password");
+            entity.Property(e => e.UsPc)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("US_PC");
+            entity.Property(e => e.UsPermIntranet).HasColumnName("US_PERM_INTRANET");
+            entity.Property(e => e.UsPermOtProv).HasColumnName("US_PERM_OT_PROV");
+            entity.Property(e => e.UsPermSph).HasColumnName("US_PERM_SPH");
+            entity.Property(e => e.UsPermTorre)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("us_perm_torre");
+            entity.Property(e => e.UsPermTranAuto).HasColumnName("us_perm_tran_auto");
+            entity.Property(e => e.UsPorDescAuto).HasColumnName("US_POR_DESC_AUTO");
+            entity.Property(e => e.UsPorDescMoi).HasColumnName("US_POR_DESC_MOI");
+            entity.Property(e => e.UsPorDescRep).HasColumnName("US_POR_DESC_REP");
+            entity.Property(e => e.UsPorcAjusPrec).HasColumnName("US_PORC_AJUS_PREC");
+            entity.Property(e => e.UsPrecio).HasColumnName("US_PRECIO");
+            entity.Property(e => e.UsReimpresion)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("US_REIMPRESION");
+            entity.Property(e => e.UsRuc)
+                .HasMaxLength(15)
+                .IsUnicode(false)
+                .HasColumnName("US_RUC");
+            entity.Property(e => e.UsSeguHoja)
+                .HasMaxLength(5)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("US_SEGU_HOJA");
+            entity.Property(e => e.UsStatus)
+                .HasComment("0:Activo |1:Cambio de Clave |2:Bloqueado |3:Inactivo")
+                .HasDefaultValue((short)1, "DF_seg_usuarios_us_status")
+                .HasColumnName("us_status");
+            entity.Property(e => e.UsSupervisor).HasColumnName("US_SUPERVISOR");
+            entity.Property(e => e.UsTasa).HasColumnName("US_TASA");
+            entity.Property(e => e.UsTipoIden)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasDefaultValue("N", "DF__seg_usuar__us_ti__3136CE34")
+                .HasColumnName("us_tipo_iden");
+            entity.Property(e => e.UsTipoPrecio).HasColumnName("US_TIPO_PRECIO");
+            entity.Property(e => e.UsTopCons)
+                .HasDefaultValue((short)11, "DF_seg_usuarios_US_TOP_CONS")
+                .HasColumnName("US_TOP_CONS");
+            entity.Property(e => e.UsTranHc).HasColumnName("US_TRAN_HC");
         });
 
 

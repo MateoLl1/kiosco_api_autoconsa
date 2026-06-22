@@ -1,5 +1,6 @@
 using Automotores.Kiosco.Data;
 using Automotores.Kiosco.Modules.Agencias.Services;
+using Automotores.Kiosco.Modules.Auth.Services;
 using Automotores.Kiosco.Modules.Clientes.Services;
 using Automotores.Kiosco.Modules.Minio.Interfaces;
 using Automotores.Kiosco.Modules.Minio.Options;
@@ -60,6 +61,7 @@ builder.Services.AddScoped<IMinioService, MinioService>();
 builder.Services.AddScoped<ClienteService>();
 builder.Services.AddScoped<KeycloakTokenService>();
 builder.Services.AddScoped<AgenciaService>();
+builder.Services.AddScoped<AuthService>();
 
 builder.Services.AddScoped<TurnoService>();
 builder.Services.AddScoped<TurnoConCitaService>();
