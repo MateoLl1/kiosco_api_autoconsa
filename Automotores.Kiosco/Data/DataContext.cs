@@ -33,6 +33,11 @@ public partial class DataContext : DbContext
     public virtual DbSet<SEG_PARAMETRO_USUARIO> SEG_PARAMETRO_USUARIO { get; set; }
 
     public virtual DbSet<SEG_USUARIO> SEG_USUARIO { get; set; }
+
+    public virtual DbSet<SI_DISP_VEND> SI_DISP_VEND { get; set; }
+
+
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<SI_AGENCIA>(entity =>
@@ -1386,6 +1391,56 @@ public partial class DataContext : DbContext
                 .HasDefaultValue((short)11, "DF_seg_usuarios_US_TOP_CONS")
                 .HasColumnName("US_TOP_CONS");
             entity.Property(e => e.UsTranHc).HasColumnName("US_TRAN_HC");
+        });
+
+
+        modelBuilder.Entity<SI_DISP_VEND>(entity =>
+        {
+            entity.HasKey(e => e.DvCodigo).HasFillFactor(80);
+
+            entity.ToTable("SI_DISP_VEND");
+
+            entity.Property(e => e.DvCodigo)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("decimal(18, 0)")
+                .HasColumnName("DV_CODIGO");
+            entity.Property(e => e.AgCodigo)
+                .HasColumnType("decimal(18, 0)")
+                .HasColumnName("AG_CODIGO");
+            entity.Property(e => e.DvBandAten).HasColumnName("DV_BAND_ATEN");
+            entity.Property(e => e.DvEstado)
+                .HasMaxLength(2)
+                .IsUnicode(false)
+                .HasColumnName("DV_ESTADO");
+            entity.Property(e => e.DvFechLogin)
+                .HasColumnType("datetime")
+                .HasColumnName("DV_FECH_LOGIN");
+            entity.Property(e => e.DvFechUltiAten)
+                .HasColumnType("datetime")
+                .HasColumnName("DV_FECH_ULTI_ATEN");
+            entity.Property(e => e.DvFecha)
+                .HasColumnType("datetime")
+                .HasColumnName("DV_FECHA");
+            entity.Property(e => e.DvNumAten)
+                .HasColumnType("decimal(18, 0)")
+                .HasColumnName("DV_NUM_ATEN");
+            entity.Property(e => e.DvPrioridad).HasColumnName("DV_PRIORIDAD");
+            entity.Property(e => e.DvTipo).HasColumnName("DV_TIPO");
+            entity.Property(e => e.GnCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("GN_CODIGO");
+            entity.Property(e => e.TaCodigo)
+                .HasColumnType("decimal(18, 0)")
+                .HasColumnName("TA_CODIGO");
+            entity.Property(e => e.TeCodigo)
+                .HasColumnType("decimal(18, 0)")
+                .HasColumnName("TE_CODIGO");
+            entity.Property(e => e.UsCodiCrea)
+                .HasColumnType("decimal(18, 0)")
+                .HasColumnName("US_CODI_CREA");
+            entity.Property(e => e.UsCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("US_CODIGO");
         });
 
 
