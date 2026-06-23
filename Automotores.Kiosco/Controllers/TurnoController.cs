@@ -244,6 +244,30 @@ namespace Automotores.Kiosco.Controllers
             return Ok(resultado);
         }
 
+        [HttpPost("{asgCodigo}/cancelar")]
+        public async Task<IActionResult> Cancelar(decimal asgCodigo)
+        {
+            if (asgCodigo <= 0)
+            {
+                return BadRequest(new
+                {
+                    mensaje = "El código del turno es requerido."
+                });
+            }
+
+            var resultado = await _turnoAtencionService.CancelarAsync(asgCodigo);
+
+            if (resultado == null)
+            {
+                return NotFound(new
+                {
+                    mensaje = "No se encontró un turno válido para cancelar."
+                });
+            }
+
+            return Ok(resultado);
+        }
+
 
     }
 }

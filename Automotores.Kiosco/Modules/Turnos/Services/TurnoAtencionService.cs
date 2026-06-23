@@ -125,6 +125,29 @@ namespace Automotores.Kiosco.Modules.Turnos.Services
             return Mapear(turno, "Turno atendido correctamente.");
         }
 
+        public async Task<TurnoAtencionDto?> CancelarAsync(decimal asgCodigo)
+        {
+            if (asgCodigo <= 0)
+                return null;
+
+            var turno = await _context.SI_ASIG_TURNO
+                .FirstOrDefaultAsync(x => x.AsgCodigo == asgCodigo);
+
+            if (turno == null)
+                return null;
+
+            if (turno.AsgEstado == "I" || turno.AsgEstado == "T")
+                return null;
+
+            turno.AsgEstado = "I";
+            turno.AsgFechMovi = DateTime.Now;
+            turno.UsCodigo = UsuarioMostrador;
+
+            await _context.SaveChangesAsync();
+
+            return Mapear(turno, "Turno anulado correctamente.");
+        }
+
         private static TurnoAtencionDto Mapear(SI_ASIG_TURNO turno, string mensaje)
         {
             return new TurnoAtencionDto
