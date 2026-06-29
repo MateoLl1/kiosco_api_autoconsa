@@ -3,6 +3,7 @@ namespace Automotores.Kiosco.Modules.Turnos.Dtos
     public class TurnoGeneradoDto
     {
         public decimal AsgCodigo { get; set; }
+        public decimal? TkCodigo { get; set; }
         public string Turno { get; set; } = string.Empty;
         public string Tipo { get; set; } = string.Empty;
         public string Area { get; set; } = string.Empty;

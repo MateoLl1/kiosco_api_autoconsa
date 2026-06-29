@@ -33,17 +33,19 @@ namespace Automotores.Kiosco.Modules.Mostrador.Services
                 throw new Exception("No existe configuración de turnos para la agencia");
 
             string nombreCliente = string.Empty;
+            decimal? clCodigo = null;
 
             if (!string.IsNullOrWhiteSpace(identificacion))
             {
                 var cliente = await _context.SI_CLIENTE
                     .AsNoTracking()
                     .Where(x => x.ClId.Trim() == identificacion.Trim())
-                    .Select(x => new { x.ClNombre, x.ClApellido, x.ClTipoId })
+                    .Select(x => new { x.ClCodigo, x.ClNombre, x.ClApellido, x.ClTipoId })
                     .FirstOrDefaultAsync();
 
                 if (cliente != null)
                 {
+                    clCodigo = cliente.ClCodigo;
                     nombreCliente = cliente.ClTipoId == "Natural"
                         ? $"{cliente.ClApellido} {cliente.ClNombre}".Trim()
                         : $"{cliente.ClNombre}".Trim();
@@ -92,11 +94,27 @@ namespace Automotores.Kiosco.Modules.Mostrador.Services
             _context.SI_ASIG_TURNO.Add(nuevoTurno);
             await _context.SaveChangesAsync();
 
+            var turnoKiosco = new SI_TURNO_KIOSCO
+            {
+                AgCodigo = agenciaId,
+                ClCodigo = clCodigo,
+                AsgCodigo = nuevoTurno.AsgCodigo,
+                TkTurno = turnoTexto,
+                TkTipo = "mostrador",
+                TkEstado = "A",
+                TkFechCrea = ahora,
+                TkTimeEspe = tiempoEstimado
+            };
+
+            _context.SI_TURNO_KIOSCO.Add(turnoKiosco);
+            await _context.SaveChangesAsync();
+
             await tx.CommitAsync();
 
             return new TurnoGeneradoDto
             {
                 AsgCodigo = nuevoTurno.AsgCodigo,
+                TkCodigo = turnoKiosco.TkCodigo,
                 Turno = turnoTexto,
                 Tipo = "mostrador",
                 Area = "Mostrador",

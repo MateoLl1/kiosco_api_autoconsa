@@ -36,7 +36,7 @@ public partial class DataContext : DbContext
 
     public virtual DbSet<SI_DISP_VEND> SI_DISP_VEND { get; set; }
 
-
+    public virtual DbSet<SI_TURNO_KIOSCO> SI_TURNO_KIOSCO { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1445,6 +1445,72 @@ public partial class DataContext : DbContext
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("US_CODIGO");
         });
+
+
+
+        modelBuilder.Entity<SI_TURNO_KIOSCO>(entity =>
+        {
+            entity.HasKey(e => e.TkCodigo);
+
+            entity.ToTable("SI_TURNO_KIOSCO");
+
+            entity.Property(e => e.TkCodigo)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TK_CODIGO");
+            entity.Property(e => e.AgCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("AG_CODIGO");
+            entity.Property(e => e.ClCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("CL_CODIGO");
+            entity.Property(e => e.AsgCodigo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("ASG_CODIGO");
+            entity.Property(e => e.TkEstado)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasDefaultValue("A", "DF_SI_TURNO_KIOSCO_TK_ESTADO")
+                .HasColumnName("TK_ESTADO");
+            entity.Property(e => e.TkFechAten)
+                .HasColumnType("datetime")
+                .HasColumnName("TK_FECH_ATEN");
+            entity.Property(e => e.TkFechCrea)
+                .HasDefaultValueSql("(getdate())", "DF_SI_TURNO_KIOSCO_TK_FECH_CREA")
+                .HasColumnType("datetime")
+                .HasColumnName("TK_FECH_CREA");
+            entity.Property(e => e.TkFechLlam)
+                .HasColumnType("datetime")
+                .HasColumnName("TK_FECH_LLAM");
+            entity.Property(e => e.TkTimeEspe)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TK_TIME_ESPE");
+            entity.Property(e => e.TkTipo)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("TK_TIPO");
+            entity.Property(e => e.TkTurno)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("TK_TURNO");
+            entity.Property(e => e.UsCodiLlamo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("US_CODI_LLAMO");
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
