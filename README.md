@@ -48,7 +48,12 @@ dotnet ef dbcontext scaffold "Server=serv-desarrollo;Database=siac_electro;User 
 
 2. ⚠️ Uso de tablas específicas (ESTA HAY QUE USAR)
 ```
-dotnet ef dbcontext scaffold "Server=serv-desarrollo;Database=siac_electro;User Id=mllerena;Password=Auto2525;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -o ModelsTemp -c DataContextTemp --context-dir DataTemp --no-onconfiguring -t SI_AGEND_TECN -t SI_STICKER -t SI_MODELO
+dotnet ef dbcontext scaffold "Server=serv-desarrollo;Database=siac_actual_09032026;User Id=mllerena;Password=Auto2525;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -o ModelsTemp -c DataContextTemp --context-dir DataTemp --no-onconfiguring -t SEG_PARAMETRO_USUARIO -t SI_DISP_VEND
+
+```
+3. ⚠️ TESTING
+```
+dotnet ef dbcontext scaffold "Server=serv-desarrollo;Database=siac_actual_09032026;User Id=mllerena;Password=Auto2525;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -o ModelsTemp -c DataContextTemp --context-dir DataTemp --no-onconfiguring -t SI_TURNO
 ```
 
 ### 📌 Parámetro

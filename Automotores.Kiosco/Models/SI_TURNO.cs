@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
+﻿
 namespace Automotores.Kiosco.Models;
 
 public partial class SI_TURNO
@@ -16,4 +14,6 @@ public partial class SI_TURNO
     public decimal? TuFlota { get; set; }
 
     public decimal? TuCitaLato { get; set; }
+
+    public decimal? TuMostrador { get; set; }
 }

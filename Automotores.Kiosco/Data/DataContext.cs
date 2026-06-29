@@ -1145,6 +1145,9 @@ public partial class DataContext : DbContext
             entity.Property(e => e.TuFlota)
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("TU_FLOTA");
+            entity.Property(e => e.TuMostrador)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TU_MOSTRADOR");
             entity.Property(e => e.TuSinCita)
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("TU_SIN_CITA");

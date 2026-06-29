@@ -8,6 +8,7 @@ using Automotores.Kiosco.Modules.Minio.Services;
 using Automotores.Kiosco.Modules.PantallaTurnos.Services;
 using Automotores.Kiosco.Modules.Seguridad.Services;
 using Automotores.Kiosco.Modules.TurnoMedia.Services;
+using Automotores.Kiosco.Modules.Mostrador.Services;
 using Automotores.Kiosco.Modules.Turnos.Services;
 using Automotores.Kiosco.Modules.Whatsapp.Services;
 using Microsoft.AspNetCore.Http.Features;
@@ -72,6 +73,8 @@ builder.Services.AddScoped<TurnoAtencionService>();
 
 
 builder.Services.AddScoped<PantallaTurnosService>();
+builder.Services.AddScoped<DisponibilidadService>();
+builder.Services.AddScoped<TurnoMostradorService>();
 
 
 builder.Services.AddScoped<WhatsappTurnoService>();
