@@ -141,62 +141,71 @@ namespace Automotores.Kiosco.Modules.PantallaTurnos.Services
 
         private async Task<Dictionary<decimal, string>> ObtenerNombresClientesAsync(List<TurnoPantallaBase> turnos)
         {
+            // Diccionario keyed por AsgCodigo (único por turno)
             var nombres = new Dictionary<decimal, string>();
 
-            var codigosCita = turnos
+            // con_cita: CiCodigo = AtCodigo → SI_AGEND_TECN → SI_CLIENTE
+            var itemsConCita = turnos
                 .Where(x => ObtenerTipoDesdeTurno(x.TuId ?? string.Empty) == "con_cita" && (x.CiCodigo ?? 0) > 0)
-                .Select(x => x.CiCodigo!.Value)
-                .Distinct()
                 .ToList();
 
-            if (codigosCita.Any())
+            if (itemsConCita.Any())
             {
+                var codigosCita = itemsConCita.Select(x => x.CiCodigo!.Value).Distinct().ToList();
                 var nombresCita = await (
                     from at in _context.SI_AGEND_TECN.AsNoTracking()
                     join cl in _context.SI_CLIENTE.AsNoTracking() on at.ClCodigo equals cl.ClCodigo
                     where codigosCita.Contains(at.AtCodigo)
-                    select new
-                    {
-                        Codigo = at.AtCodigo,
-                        cl.ClContacto,
-                        cl.ClNombre,
-                        cl.ClApellido
-                    }
+                    select new { at.AtCodigo, cl.ClContacto, cl.ClNombre, cl.ClApellido }
                 ).ToListAsync();
 
-                foreach (var item in nombresCita)
-                {
-                    nombres[item.Codigo] = UnirNombreCliente(item.ClContacto, item.ClApellido, item.ClNombre);
-                }
+                var mapCita = nombresCita.ToDictionary(x => x.AtCodigo, x => UnirNombreCliente(x.ClContacto, x.ClApellido, x.ClNombre));
+                foreach (var item in itemsConCita)
+                    if (mapCita.TryGetValue(item.CiCodigo!.Value, out var nombre))
+                        nombres[item.AsgCodigo] = nombre;
             }
 
-            var codigosCliente = turnos
+            // kiosco / sin_cita: CiCodigo = ClCodigo → SI_CLIENTE
+            var itemsCliente = turnos
                 .Where(x =>
                     (ObtenerTipoDesdeTurno(x.TuId ?? string.Empty) == "kiosco" ||
                      ObtenerTipoDesdeTurno(x.TuId ?? string.Empty) == "sin_cita") &&
                     (x.CiCodigo ?? 0) > 0)
-                .Select(x => x.CiCodigo!.Value)
-                .Distinct()
                 .ToList();
 
-            if (codigosCliente.Any())
+            if (itemsCliente.Any())
             {
+                var codigosCliente = itemsCliente.Select(x => x.CiCodigo!.Value).Distinct().ToList();
                 var nombresCliente = await _context.SI_CLIENTE
                     .AsNoTracking()
                     .Where(x => codigosCliente.Contains(x.ClCodigo))
-                    .Select(x => new
-                    {
-                        Codigo = x.ClCodigo,
-                        x.ClContacto,
-                        x.ClNombre,
-                        x.ClApellido
-                    })
+                    .Select(x => new { x.ClCodigo, x.ClContacto, x.ClNombre, x.ClApellido })
                     .ToListAsync();
 
-                foreach (var item in nombresCliente)
-                {
-                    nombres[item.Codigo] = UnirNombreCliente(item.ClContacto, item.ClApellido, item.ClNombre);
-                }
+                var mapCliente = nombresCliente.ToDictionary(x => x.ClCodigo, x => UnirNombreCliente(x.ClContacto, x.ClApellido, x.ClNombre));
+                foreach (var item in itemsCliente)
+                    if (mapCliente.TryGetValue(item.CiCodigo!.Value, out var nombre))
+                        nombres[item.AsgCodigo] = nombre;
+            }
+
+            // mostrador: AsgCodigo → SI_TURNO_KIOSCO → SI_CLIENTE (solo si tiene CL_CODIGO)
+            var asgCodigosMostrador = turnos
+                .Where(x => ObtenerTipoDesdeTurno(x.TuId ?? string.Empty) == "mostrador")
+                .Select(x => x.AsgCodigo)
+                .Distinct()
+                .ToList();
+
+            if (asgCodigosMostrador.Any())
+            {
+                var nombresMostrador = await (
+                    from tk in _context.SI_TURNO_KIOSCO.AsNoTracking()
+                    join cl in _context.SI_CLIENTE.AsNoTracking() on tk.ClCodigo equals cl.ClCodigo
+                    where tk.AsgCodigo != null && asgCodigosMostrador.Contains(tk.AsgCodigo.Value)
+                    select new { AsgCodigo = tk.AsgCodigo!.Value, cl.ClContacto, cl.ClNombre, cl.ClApellido }
+                ).ToListAsync();
+
+                foreach (var item in nombresMostrador)
+                    nombres[item.AsgCodigo] = UnirNombreCliente(item.ClContacto, item.ClApellido, item.ClNombre);
             }
 
             return nombres;
@@ -208,10 +217,7 @@ namespace Automotores.Kiosco.Modules.PantallaTurnos.Services
 
             foreach (var item in turnosBase)
             {
-                var codigoNombre = item.CiCodigo ?? 0;
-                var nombreCliente = codigoNombre > 0 && nombres.ContainsKey(codigoNombre)
-                    ? nombres[codigoNombre]
-                    : string.Empty;
+                var nombreCliente = nombres.TryGetValue(item.AsgCodigo, out var nombre) ? nombre : string.Empty;
 
                 var estado = (item.AsgEstado ?? string.Empty).Trim();
                 var tiempo = item.AsgTime ?? 0;
@@ -258,6 +264,7 @@ namespace Automotores.Kiosco.Modules.PantallaTurnos.Services
             if (valor.StartsWith("S")) return "sin_cita";
             if (valor.StartsWith("F")) return "flota";
             if (valor.StartsWith("L")) return "latoneria";
+            if (valor.StartsWith("M")) return "mostrador";
             return "otro";
         }
 
