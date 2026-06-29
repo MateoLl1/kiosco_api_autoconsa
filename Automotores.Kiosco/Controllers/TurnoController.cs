@@ -162,7 +162,7 @@ namespace Automotores.Kiosco.Controllers
 
 
         [HttpPost("llamar-siguiente")]
-        public async Task<IActionResult> LlamarSiguiente([FromQuery] decimal agenciaId)
+        public async Task<IActionResult> LlamarSiguiente([FromQuery] decimal agenciaId, [FromQuery] decimal usCodigo = 0)
         {
             if (agenciaId <= 0)
             {
@@ -174,7 +174,7 @@ namespace Automotores.Kiosco.Controllers
 
             try
             {
-                var resultado = await _turnoAtencionService.LlamarSiguienteAsync(agenciaId);
+                var resultado = await _turnoAtencionService.LlamarSiguienteAsync(agenciaId, usCodigo);
 
                 if (resultado == null)
                 {

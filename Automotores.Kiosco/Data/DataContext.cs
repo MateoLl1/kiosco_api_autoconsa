@@ -37,6 +37,10 @@ public partial class DataContext : DbContext
     public virtual DbSet<SI_DISP_VEND> SI_DISP_VEND { get; set; }
 
     public virtual DbSet<SI_TURNO_KIOSCO> SI_TURNO_KIOSCO { get; set; }
+
+    public virtual DbSet<SEG_GRUPO> SEG_GRUPO { get; set; }
+
+    public virtual DbSet<SI_CAMP_REPO_REPU> SI_CAMP_REPO_REPU { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1499,6 +1503,79 @@ public partial class DataContext : DbContext
                 .HasColumnName("US_CODI_LLAMO");
         });
 
+        modelBuilder.Entity<SEG_GRUPO>(entity =>
+        {
+            entity.HasKey(e => e.GrCodigo).HasFillFactor(80);
+
+            entity.ToTable("seg_grupos");
+
+            entity.Property(e => e.GrCodigo)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("gr_codigo");
+            entity.Property(e => e.GrAproba)
+                .HasDefaultValue(false)
+                .HasColumnName("gr_aproba");
+            entity.Property(e => e.GrDescrip)
+                .HasMaxLength(120)
+                .IsUnicode(false)
+                .HasColumnName("gr_descrip");
+            entity.Property(e => e.GrNombre)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("gr_nombre");
+            entity.Property(e => e.GxCodigo)
+                .HasDefaultValue(7, "DF_seg_grupos_GX_CODIGO")
+                .HasColumnName("GX_CODIGO");
+        });
+
+        modelBuilder.Entity<SI_CAMP_REPO_REPU>(entity =>
+        {
+            entity.HasKey(e => e.RrCodigo)
+                .IsClustered(false)
+                .HasFillFactor(80);
+
+            entity.ToTable("SI_CAMP_REPO_REPU");
+
+            entity.HasIndex(e => e.RrTipo, "indCampRepoRepu").HasFillFactor(80);
+
+            entity.Property(e => e.RrCodigo)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("RR_CODIGO");
+            entity.Property(e => e.RrCabecera).HasColumnName("RR_CABECERA");
+            entity.Property(e => e.RrFecha)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("RR_FECHA");
+            entity.Property(e => e.RrNombReal)
+                .IsUnicode(false)
+                .HasColumnName("RR_NOMB_REAL");
+            entity.Property(e => e.RrNombRealS)
+                .IsUnicode(false)
+                .HasColumnName("RR_NOMB_REAL_S");
+            entity.Property(e => e.RrNombRealS1)
+                .IsUnicode(false)
+                .HasColumnName("RR_NOMB_REAL_S1");
+            entity.Property(e => e.RrNombRealS2)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("RR_NOMB_REAL_S2");
+            entity.Property(e => e.RrNombre)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("RR_NOMBRE");
+            entity.Property(e => e.RrProcedencia)
+                .HasMaxLength(2)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("RR_PROCEDENCIA");
+            entity.Property(e => e.RrTipo)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("RR_TIPO");
+            entity.Property(e => e.RrTotalizar).HasColumnName("RR_TOTALIZAR");
+            entity.Property(e => e.RrValoNume)
+                .HasColumnType("numeric(18, 2)")
+                .HasColumnName("RR_VALO_NUME");
+        });
 
 
 

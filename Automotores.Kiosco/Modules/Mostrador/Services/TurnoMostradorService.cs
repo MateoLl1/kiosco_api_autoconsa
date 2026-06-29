@@ -102,8 +102,7 @@ namespace Automotores.Kiosco.Modules.Mostrador.Services
                 TkTurno = turnoTexto,
                 TkTipo = "mostrador",
                 TkEstado = "A",
-                TkFechCrea = ahora,
-                TkTimeEspe = tiempoEstimado
+                TkFechCrea = ahora
             };
 
             _context.SI_TURNO_KIOSCO.Add(turnoKiosco);

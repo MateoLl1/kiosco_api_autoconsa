@@ -18,7 +18,7 @@ namespace Automotores.Kiosco.Modules.Turnos.Services
             _context = context;
         }
 
-        public async Task<TurnoAtencionDto?> LlamarSiguienteAsync(decimal agenciaId)
+        public async Task<TurnoAtencionDto?> LlamarSiguienteAsync(decimal agenciaId, decimal usCodigo)
         {
             if (agenciaId <= 0)
                 return null;
@@ -70,6 +70,18 @@ namespace Automotores.Kiosco.Modules.Turnos.Services
             turno.AsgTime = 9;
 
             await _context.SaveChangesAsync();
+
+            var turnoKiosco = await _context.SI_TURNO_KIOSCO
+                .FirstOrDefaultAsync(x => x.AsgCodigo == turno.AsgCodigo);
+
+            if (turnoKiosco != null)
+            {
+                turnoKiosco.TkEstado = "R";
+                turnoKiosco.TkFechLlam = ahora;
+                turnoKiosco.UsCodiLlamo = usCodigo > 0 ? usCodigo : null;
+                await _context.SaveChangesAsync();
+            }
+
             await tx.CommitAsync();
 
             return Mapear(turno, "Turno llamado correctamente.");
@@ -79,6 +91,8 @@ namespace Automotores.Kiosco.Modules.Turnos.Services
         {
             if (asgCodigo <= 0)
                 return null;
+
+            var ahora = DateTime.Now;
 
             var turno = await _context.SI_ASIG_TURNO
                 .FirstOrDefaultAsync(x => x.AsgCodigo == asgCodigo);
@@ -91,13 +105,23 @@ namespace Automotores.Kiosco.Modules.Turnos.Services
 
             turno.AsgEstado = "R";
             turno.AsgTime = 3;
-            turno.AsgFechMovi = DateTime.Now;
+            turno.AsgFechMovi = ahora;
             turno.UsCodigo = UsuarioMostrador;
 
             if (string.IsNullOrWhiteSpace(turno.AsgModulo) || turno.AsgModulo == "N")
                 turno.AsgModulo = ModuloMostrador;
 
             await _context.SaveChangesAsync();
+
+            var turnoKiosco = await _context.SI_TURNO_KIOSCO
+                .FirstOrDefaultAsync(x => x.AsgCodigo == asgCodigo);
+
+            if (turnoKiosco != null)
+            {
+                turnoKiosco.TkEstado = "R";
+                turnoKiosco.TkFechLlam = ahora;
+                await _context.SaveChangesAsync();
+            }
 
             return Mapear(turno, "Turno rellamado correctamente.");
         }
@@ -106,6 +130,8 @@ namespace Automotores.Kiosco.Modules.Turnos.Services
         {
             if (asgCodigo <= 0)
                 return null;
+
+            var ahora = DateTime.Now;
 
             var turno = await _context.SI_ASIG_TURNO
                 .FirstOrDefaultAsync(x => x.AsgCodigo == asgCodigo);
@@ -118,9 +144,20 @@ namespace Automotores.Kiosco.Modules.Turnos.Services
 
             turno.AsgEstado = "T";
             turno.AsgTime = 0;
-            turno.AsgFechMovi = DateTime.Now;
+            turno.AsgFechMovi = ahora;
 
             await _context.SaveChangesAsync();
+
+            var turnoKiosco = await _context.SI_TURNO_KIOSCO
+                .FirstOrDefaultAsync(x => x.AsgCodigo == asgCodigo);
+
+            if (turnoKiosco != null)
+            {
+                turnoKiosco.TkEstado = "T";
+                turnoKiosco.TkFechAten = ahora;
+                turnoKiosco.TkTimeEspe = (decimal)(ahora - turnoKiosco.TkFechCrea).TotalSeconds;
+                await _context.SaveChangesAsync();
+            }
 
             return Mapear(turno, "Turno atendido correctamente.");
         }
@@ -129,6 +166,8 @@ namespace Automotores.Kiosco.Modules.Turnos.Services
         {
             if (asgCodigo <= 0)
                 return null;
+
+            var ahora = DateTime.Now;
 
             var turno = await _context.SI_ASIG_TURNO
                 .FirstOrDefaultAsync(x => x.AsgCodigo == asgCodigo);
@@ -140,10 +179,19 @@ namespace Automotores.Kiosco.Modules.Turnos.Services
                 return null;
 
             turno.AsgEstado = "I";
-            turno.AsgFechMovi = DateTime.Now;
+            turno.AsgFechMovi = ahora;
             turno.UsCodigo = UsuarioMostrador;
 
             await _context.SaveChangesAsync();
+
+            var turnoKiosco = await _context.SI_TURNO_KIOSCO
+                .FirstOrDefaultAsync(x => x.AsgCodigo == asgCodigo);
+
+            if (turnoKiosco != null)
+            {
+                turnoKiosco.TkEstado = "I";
+                await _context.SaveChangesAsync();
+            }
 
             return Mapear(turno, "Turno anulado correctamente.");
         }
