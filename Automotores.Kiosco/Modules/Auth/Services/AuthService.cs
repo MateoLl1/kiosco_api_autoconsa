@@ -7,6 +7,8 @@ namespace Automotores.Kiosco.Modules.Auth.Services;
 
 public class AuthService
 {
+    private static readonly HashSet<decimal> GruposPermitidos = new() { 5, 9, 11 };
+
     private readonly DataContext _context;
 
     public AuthService(DataContext context)
@@ -27,17 +29,10 @@ public class AuthService
         if (usuario is null)
             return (null, "Credenciales incorrectas.");
 
-        if (usuario.UsStatus != 0)
-        {
-            var motivo = usuario.UsStatus switch
-            {
-                1 => "La cuenta requiere cambio de clave.",
-                2 => "La cuenta está bloqueada.",
-                3 => "La cuenta está inactiva.",
-                _ => "La cuenta no está activa."
-            };
-            return (null, motivo);
-        }
+        
+
+        if (!GruposPermitidos.Contains(usuario.GrCodigo))
+            return (null, "El usuario no tiene permiso para acceder a esta aplicación.");
 
         var parametro = await _context.SEG_PARAMETRO_USUARIO
             .AsNoTracking()
@@ -48,13 +43,17 @@ public class AuthService
         if (parametro is null)
             return (null, "El usuario no tiene acceso a la agencia seleccionada.");
 
+        if (string.IsNullOrWhiteSpace(parametro.PuModulo))
+            return (null, "El usuario no tiene módulos asignados en esta agencia.");
+
         var response = new LoginResponse
         {
-            UsCodigo  = usuario.UsCodigo,
-            UsNombre  = usuario.UsNombre,
-            UsLogin   = usuario.UsLogin,
+            UsCodigo   = usuario.UsCodigo,
+            UsNombre   = usuario.UsNombre,
+            UsLogin    = usuario.UsLogin,
             UsPassword = usuario.UsPassword,
-            PuModulo  = parametro.PuModulo
+            GrCodigo   = usuario.GrCodigo,
+            PuModulo   = parametro.PuModulo
         };
 
         return (response, null);

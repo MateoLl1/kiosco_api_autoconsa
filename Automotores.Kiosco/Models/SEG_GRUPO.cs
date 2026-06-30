@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
+﻿
 namespace Automotores.Kiosco.Models;
 
 public partial class SEG_GRUPO

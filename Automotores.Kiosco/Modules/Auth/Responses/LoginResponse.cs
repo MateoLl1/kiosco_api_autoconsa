@@ -6,5 +6,6 @@ public class LoginResponse
     public string UsNombre { get; set; } = null!;
     public string UsLogin { get; set; } = null!;
     public string UsPassword { get; set; } = null!;
+    public decimal? GrCodigo { get; set; }
     public string? PuModulo { get; set; }
 }
