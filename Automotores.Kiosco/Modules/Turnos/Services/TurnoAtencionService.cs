@@ -62,6 +62,9 @@ namespace Automotores.Kiosco.Modules.Turnos.Services
             if (turno == null)
                 return null;
 
+            // Capturar fecha de llegada antes de sobreescribir AsgFechMovi
+            var fechaLlegada = turno.AsgFechMovi;
+
             turno.AsgModulo = ModuloMostrador;
             turno.AsgFechAsig = ahora;
             turno.AsgFechMovi = ahora;
@@ -79,9 +82,28 @@ namespace Automotores.Kiosco.Modules.Turnos.Services
                 turnoKiosco.TkEstado = "R";
                 turnoKiosco.TkFechLlam = ahora;
                 turnoKiosco.UsCodiLlamo = usCodigo > 0 ? usCodigo : null;
-                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                // Turno creado fuera de nuestra API — crear registro de seguimiento ahora
+                var tipo = ObtenerTipoDesdeTurno(turno.TuId ?? string.Empty);
+                var clCodigo = await ResolverClCodigoAsync(turno.CiCodigo, tipo);
+
+                _context.SI_TURNO_KIOSCO.Add(new SI_TURNO_KIOSCO
+                {
+                    AgCodigo = turno.AgCodigo ?? agenciaId,
+                    ClCodigo = clCodigo,
+                    AsgCodigo = turno.AsgCodigo,
+                    TkTurno = (turno.TuId ?? string.Empty).Trim(),
+                    TkTipo = tipo,
+                    TkEstado = "R",
+                    TkFechCrea = fechaLlegada ?? ahora,
+                    TkFechLlam = ahora,
+                    UsCodiLlamo = usCodigo > 0 ? usCodigo : null
+                });
             }
 
+            await _context.SaveChangesAsync();
             await tx.CommitAsync();
 
             return Mapear(turno, "Turno llamado correctamente.");
@@ -194,6 +216,39 @@ namespace Automotores.Kiosco.Modules.Turnos.Services
             }
 
             return Mapear(turno, "Turno anulado correctamente.");
+        }
+
+        private async Task<decimal?> ResolverClCodigoAsync(decimal? ciCodigo, string tipo)
+        {
+            if ((ciCodigo ?? 0) == 0) return null;
+
+            // kiosco/sin_cita/latoneria: CiCodigo es directamente ClCodigo
+            if (tipo == "kiosco" || tipo == "sin_cita" || tipo == "latoneria")
+                return ciCodigo;
+
+            // con_cita: CiCodigo es AtCodigo → buscar ClCodigo en SI_AGEND_TECN
+            if (tipo == "con_cita")
+            {
+                return await _context.SI_AGEND_TECN
+                    .AsNoTracking()
+                    .Where(x => x.AtCodigo == ciCodigo)
+                    .Select(x => (decimal?)x.ClCodigo)
+                    .FirstOrDefaultAsync();
+            }
+
+            return null;
+        }
+
+        private static string ObtenerTipoDesdeTurno(string turno)
+        {
+            var valor = turno.Trim().ToUpperInvariant();
+            if (valor.StartsWith("C")) return "con_cita";
+            if (valor.StartsWith("K")) return "kiosco";
+            if (valor.StartsWith("S")) return "sin_cita";
+            if (valor.StartsWith("F")) return "flota";
+            if (valor.StartsWith("L")) return "latoneria";
+            if (valor.StartsWith("M")) return "mostrador";
+            return "otro";
         }
 
         private static TurnoAtencionDto Mapear(SI_ASIG_TURNO turno, string mensaje)

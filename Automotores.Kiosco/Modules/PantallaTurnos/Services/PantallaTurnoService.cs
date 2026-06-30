@@ -14,7 +14,7 @@ namespace Automotores.Kiosco.Modules.PantallaTurnos.Services
             _context = context;
         }
 
-        public async Task<PantallaTurnosResponse> ObtenerTurnosPantallaAsync(decimal agenciaId, DateTime? ultimaFechaAudio = null)
+        public async Task<PantallaTurnosResponse> ObtenerTurnosPantallaAsync(decimal agenciaId, DateTime? ultimaFechaAudio = null, string? filtro = null)
         {
             var response = new PantallaTurnosResponse();
 
@@ -39,7 +39,10 @@ namespace Automotores.Kiosco.Modules.PantallaTurnos.Services
                     x.AsgModulo != "N" &&
                     x.AsgFechMovi != null &&
                     x.AsgFechMovi >= hoy &&
-                    x.AsgFechMovi < manana)
+                    x.AsgFechMovi < manana &&
+                    (filtro == null || filtro == "todos" ||
+                     (filtro == "mostrador" && x.TuId!.StartsWith("M")) ||
+                     (filtro == "servicio" && !x.TuId!.StartsWith("M"))))
                 .Select(x => new TurnoPantallaBase
                 {
                     AsgCodigo = x.AsgCodigo,
@@ -114,7 +117,10 @@ namespace Automotores.Kiosco.Modules.PantallaTurnos.Services
                     x.AsgModulo == "N" &&
                     x.AsgFechMovi != null &&
                     x.AsgFechMovi >= hoy &&
-                    x.AsgFechMovi < manana)
+                    x.AsgFechMovi < manana &&
+                    (filtro == null || filtro == "todos" ||
+                     (filtro == "mostrador" && x.TuId!.StartsWith("M")) ||
+                     (filtro == "servicio" && !x.TuId!.StartsWith("M"))))
                 .OrderBy(x => x.AsgFechMovi)
                 .ThenBy(x => x.AsgCodigo)
                 .Select(x => new TurnoPantallaBase
