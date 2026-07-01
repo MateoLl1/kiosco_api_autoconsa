@@ -64,6 +64,18 @@ namespace Automotores.Kiosco.Modules.Mostrador.Services
 
             var tiempoEstimado = (personasPorDelante + 1) * MinutosPromedioPorTurno;
 
+            // Reiniciar contador si no hay turnos M- creados hoy
+            var hayTurnosHoy = await _context.SI_ASIG_TURNO
+                .AnyAsync(x =>
+                    x.AgCodigo == agenciaId &&
+                    x.TuId != null &&
+                    x.TuId.StartsWith("M-") &&
+                    x.AsgFechMovi >= hoy &&
+                    x.AsgFechMovi < manana);
+
+            if (!hayTurnosHoy)
+                turnoDb.TuMostrador = 0;
+
             int contador = (int)(turnoDb.TuMostrador ?? 0);
             int nuevo = contador + 1;
             if (nuevo == 31)
