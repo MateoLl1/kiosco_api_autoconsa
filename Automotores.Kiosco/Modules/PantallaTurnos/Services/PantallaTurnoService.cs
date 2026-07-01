@@ -139,6 +139,12 @@ namespace Automotores.Kiosco.Modules.PantallaTurnos.Services
 
             response.TurnoActual = turnoActual;
 
+            response.TurnosActivos = turnos
+                .Where(x => x.Estado == "R")
+                .OrderByDescending(x => x.FechaReferencia)
+                .ThenByDescending(x => x.AsgCodigo)
+                .ToList();
+
             response.TurnosRecienLlamados = turnos
                 .Where(x => x.Estado == "R" && x.RequiereCambioEstado)
                 .OrderByDescending(x => x.FechaReferencia)
