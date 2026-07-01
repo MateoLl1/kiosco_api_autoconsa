@@ -15,6 +15,7 @@ namespace Automotores.Kiosco.Controllers
         [HttpGet]
         public async Task<IActionResult> ObtenerTurnosPantalla(
             [FromQuery] decimal agenciaId,
+            [FromQuery] decimal? usCodigo = null,
             [FromQuery] string? filtro = null)
         {
             if (agenciaId <= 0)
@@ -27,7 +28,7 @@ namespace Automotores.Kiosco.Controllers
                 });
             }
 
-            var lista = await _pantallaTurnosService.ObtenerTurnosPantallaAsync(agenciaId, filtro: filtro);
+            var lista = await _pantallaTurnosService.ObtenerTurnosPantallaAsync(agenciaId, usCodigo: usCodigo, filtro: filtro);
             return Ok(lista);
         }
 

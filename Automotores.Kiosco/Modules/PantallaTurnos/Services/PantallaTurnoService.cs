@@ -14,7 +14,7 @@ namespace Automotores.Kiosco.Modules.PantallaTurnos.Services
             _context = context;
         }
 
-        public async Task<PantallaTurnosResponse> ObtenerTurnosPantallaAsync(decimal agenciaId, DateTime? ultimaFechaAudio = null, string? filtro = null)
+        public async Task<PantallaTurnosResponse> ObtenerTurnosPantallaAsync(decimal agenciaId, DateTime? ultimaFechaAudio = null, decimal? usCodigo = null, string? filtro = null)
         {
             var response = new PantallaTurnosResponse();
 
@@ -51,6 +51,7 @@ namespace Automotores.Kiosco.Modules.PantallaTurnos.Services
                     AsgEstado = x.AsgEstado,
                     AsgTime = x.AsgTime,
                     CiCodigo = x.CiCodigo,
+                    UsCodigo = x.UsCodigo,
                     AsgFechMovi = x.AsgFechMovi,
                     AsgFechAsig = x.AsgFechAsig,
                     FechaReferencia = x.AsgEstado == "R"
@@ -62,22 +63,78 @@ namespace Automotores.Kiosco.Modules.PantallaTurnos.Services
                 .Take(30)
                 .ToListAsync();
 
+            await AplicarModulosRealesAsync(visiblesBase, agenciaId);
+
             var nombresVisibles = await ObtenerNombresClientesAsync(visiblesBase);
             var turnos = MapearTurnos(visiblesBase, nombresVisibles, true);
 
-            var turnoActual = turnos
-                .Where(x => x.Estado == "R" && x.EsTurnoActual)
-                .OrderByDescending(x => x.FechaReferencia)
-                .ThenByDescending(x => x.AsgCodigo)
-                .FirstOrDefault();
+            PantallaTurnoDto? turnoActual;
 
-            if (turnoActual == null)
+            if (usCodigo > 0)
+            {
+                // Buscar turno activo del usuario directo en SI_TURNO_KIOSCO.UsCodiLlamo
+                // (independiente del filtro de vista actual)
+                var asgCodigoActivo = await _context.SI_TURNO_KIOSCO
+                    .AsNoTracking()
+                    .Where(x =>
+                        x.UsCodiLlamo == usCodigo &&
+                        x.TkEstado == "R" &&
+                        x.AgCodigo == agenciaId &&
+                        x.TkFechLlam != null &&
+                        x.TkFechLlam >= hoy &&
+                        x.TkFechLlam < manana)
+                    .OrderByDescending(x => x.TkFechLlam)
+                    .Select(x => x.AsgCodigo)
+                    .FirstOrDefaultAsync();
+
+                if (asgCodigoActivo != null)
+                {
+                    turnoActual = turnos.FirstOrDefault(x => x.AsgCodigo == asgCodigoActivo);
+
+                    // Si no está en la vista actual (toggle de filtro cambió), cargar desde SI_ASIG_TURNO
+                    if (turnoActual == null)
+                    {
+                        var asg = await _context.SI_ASIG_TURNO
+                            .AsNoTracking()
+                            .Where(x => x.AsgCodigo == asgCodigoActivo && x.AsgEstado == "R")
+                            .Select(x => new { x.AsgCodigo, x.TuId, x.AsgModulo, x.AsgTime, x.AsgFechMovi })
+                            .FirstOrDefaultAsync();
+
+                        if (asg != null)
+                        {
+                            turnoActual = new PantallaTurnoDto
+                            {
+                                AsgCodigo = asg.AsgCodigo,
+                                Turno = (asg.TuId ?? string.Empty).Trim(),
+                                Modulo = (asg.AsgModulo ?? string.Empty).Trim(),
+                                Estado = "R",
+                                Tiempo = asg.AsgTime ?? 0,
+                                Tipo = ObtenerTipoDesdeTurno(asg.TuId ?? string.Empty),
+                                RequiereCambioEstado = true,
+                                EsTurnoActual = true,
+                                NombreCliente = string.Empty,
+                                FechaReferencia = asg.AsgFechMovi
+                            };
+                        }
+                    }
+                }
+                else
+                {
+                    turnoActual = null;
+                }
+            }
+            else
             {
                 turnoActual = turnos
-                    .Where(x => x.Estado == "R" || x.Estado == "L")
+                    .Where(x => x.Estado == "R" && x.EsTurnoActual)
                     .OrderByDescending(x => x.FechaReferencia)
                     .ThenByDescending(x => x.AsgCodigo)
-                    .FirstOrDefault();
+                    .FirstOrDefault()
+                    ?? turnos
+                        .Where(x => x.Estado == "R" || x.Estado == "L")
+                        .OrderByDescending(x => x.FechaReferencia)
+                        .ThenByDescending(x => x.AsgCodigo)
+                        .FirstOrDefault();
             }
 
             response.TurnoActual = turnoActual;
@@ -142,7 +199,81 @@ namespace Automotores.Kiosco.Modules.PantallaTurnos.Services
                 .Where(x => x.Estado != "I")
                 .ToList();
 
+            var modulosRaw = await (
+                from dv in _context.SI_DISP_VEND.AsNoTracking()
+                join sp in _context.SEG_PARAMETRO_USUARIO.AsNoTracking()
+                    on new { dv.UsCodigo, dv.AgCodigo } equals new { sp.UsCodigo, sp.AgCodigo }
+                where dv.AgCodigo == agenciaId
+                    && dv.DvEstado == "A"
+                    && dv.GnCodigo == 6
+                    && dv.DvFechLogin != null
+                    && dv.DvFechLogin >= hoy
+                    && dv.DvFechLogin < manana
+                    && sp.PuModulo != null
+                select sp.PuModulo
+            ).Distinct().ToListAsync();
+
+            response.ModulosActivos = modulosRaw
+                .Select(m => int.TryParse(m!.Trim(), out var n) ? (int?)n : null)
+                .Where(n => n.HasValue)
+                .Select(n => n!.Value)
+                .OrderBy(n => n)
+                .ToList();
+
             return response;
+        }
+
+        private async Task AplicarModulosRealesAsync(List<TurnoPantallaBase> turnos, decimal agenciaId)
+        {
+            var asgCodigosR = turnos
+                .Where(x => (x.AsgEstado ?? "").Trim() == "R")
+                .Select(x => x.AsgCodigo)
+                .ToList();
+
+            if (asgCodigosR.Count == 0) return;
+
+            // SI_TURNO_KIOSCO: quién llamó cada turno (AsgCodigo → UsCodiLlamo)
+            var tkLookup = await _context.SI_TURNO_KIOSCO
+                .AsNoTracking()
+                .Where(x =>
+                    x.AsgCodigo != null &&
+                    asgCodigosR.Contains(x.AsgCodigo.Value) &&
+                    x.TkEstado == "R" &&
+                    x.UsCodiLlamo != null)
+                .Select(x => new
+                {
+                    AsgCodigo = x.AsgCodigo!.Value,
+                    UsCodiLlamo = x.UsCodiLlamo!.Value
+                })
+                .ToListAsync();
+
+            if (tkLookup.Count == 0) return;
+
+            // SEG_PARAMETRO_USUARIO: módulo del usuario en esta agencia
+            // Filtramos por agenciaId (decimal? == decimal, EF Core lo traduce sin problema)
+            // Forzamos (decimal?) en UsCodigo para evitar ambigüedad al materializar
+            var parametros = await _context.SEG_PARAMETRO_USUARIO
+                .AsNoTracking()
+                .Where(x => x.AgCodigo == agenciaId && x.PuModulo != null)
+                .Select(x => new
+                {
+                    UsCodigo = (decimal?)x.UsCodigo,
+                    x.PuModulo
+                })
+                .ToListAsync();
+
+            // Diccionario UsCodigo → PuModulo (en memoria, sin ambigüedad de tipos)
+            var moduloPorUsuario = parametros
+                .Where(p => p.UsCodigo.HasValue && !string.IsNullOrWhiteSpace(p.PuModulo))
+                .ToDictionary(p => p.UsCodigo!.Value, p => p.PuModulo!.Trim());
+
+            // Aplicar el módulo real a cada turno llamado
+            foreach (var tk in tkLookup)
+            {
+                if (!moduloPorUsuario.TryGetValue(tk.UsCodiLlamo, out var modulo)) continue;
+                var item = turnos.FirstOrDefault(t => t.AsgCodigo == tk.AsgCodigo);
+                if (item != null) item.AsgModulo = modulo;
+            }
         }
 
         private async Task<Dictionary<decimal, string>> ObtenerNombresClientesAsync(List<TurnoPantallaBase> turnos)
@@ -282,6 +413,7 @@ namespace Automotores.Kiosco.Modules.PantallaTurnos.Services
             public string? AsgEstado { get; set; }
             public decimal? AsgTime { get; set; }
             public decimal? CiCodigo { get; set; }
+            public decimal? UsCodigo { get; set; }
             public DateTime? AsgFechMovi { get; set; }
             public DateTime? AsgFechAsig { get; set; }
             public DateTime? FechaReferencia { get; set; }

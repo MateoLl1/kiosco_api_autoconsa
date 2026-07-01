@@ -18,7 +18,7 @@ namespace Automotores.Kiosco.Modules.Turnos.Services
             _context = context;
         }
 
-        public async Task<TurnoAtencionDto?> LlamarSiguienteAsync(decimal agenciaId, decimal usCodigo)
+        public async Task<TurnoAtencionDto?> LlamarSiguienteAsync(decimal agenciaId, decimal usCodigo, string? filtro = null)
         {
             if (agenciaId <= 0)
                 return null;
@@ -29,23 +29,24 @@ namespace Automotores.Kiosco.Modules.Turnos.Services
             var manana = hoy.AddDays(1);
             var ahora = DateTime.Now;
 
-            var turnoEnProceso = await _context.SI_ASIG_TURNO
-                .AsNoTracking()
-                .Where(x =>
-                    x.AgCodigo == agenciaId &&
-                    x.AsgEstado == "R" &&
-                    x.UsCodigo != 1 &&
-                    x.AsgModulo != null &&
-                    x.AsgModulo != "N" &&
-                    x.AsgFechMovi != null &&
-                    x.AsgFechMovi >= hoy &&
-                    x.AsgFechMovi < manana)
-                .OrderByDescending(x => x.AsgFechMovi)
-                .ThenByDescending(x => x.AsgCodigo)
-                .FirstOrDefaultAsync();
+            if (usCodigo > 0)
+            {
+                var turnoEnProceso = await _context.SI_ASIG_TURNO
+                    .AsNoTracking()
+                    .Where(x =>
+                        x.AgCodigo == agenciaId &&
+                        x.AsgEstado == "R" &&
+                        x.UsCodigo == usCodigo &&
+                        x.AsgModulo != null &&
+                        x.AsgModulo != "N" &&
+                        x.AsgFechMovi != null &&
+                        x.AsgFechMovi >= hoy &&
+                        x.AsgFechMovi < manana)
+                    .FirstOrDefaultAsync();
 
-            if (turnoEnProceso != null)
-                throw new InvalidOperationException("Usted tiene un turno en proceso, lo debe atender antes de llamar el siguiente.");
+                if (turnoEnProceso != null)
+                    throw new InvalidOperationException("Usted tiene un turno en proceso, lo debe atender antes de llamar el siguiente.");
+            }
 
             var turno = await _context.SI_ASIG_TURNO
                 .Where(x =>
@@ -54,7 +55,10 @@ namespace Automotores.Kiosco.Modules.Turnos.Services
                     x.AsgModulo == "N" &&
                     x.AsgFechMovi != null &&
                     x.AsgFechMovi >= hoy &&
-                    x.AsgFechMovi < manana)
+                    x.AsgFechMovi < manana &&
+                    (filtro == null || filtro == "todos" ||
+                     (filtro == "mostrador" && x.TuId!.StartsWith("M")) ||
+                     (filtro == "servicio" && !x.TuId!.StartsWith("M"))))
                 .OrderBy(x => x.AsgFechMovi)
                 .ThenBy(x => x.AsgCodigo)
                 .FirstOrDefaultAsync();
@@ -65,10 +69,24 @@ namespace Automotores.Kiosco.Modules.Turnos.Services
             // Capturar fecha de llegada antes de sobreescribir AsgFechMovi
             var fechaLlegada = turno.AsgFechMovi;
 
-            turno.AsgModulo = ModuloMostrador;
+            // Módulo real del usuario (PU_MODULO); fallback al default si no tiene configurado
+            var moduloUsuario = ModuloMostrador;
+            if (usCodigo > 0)
+            {
+                var puModulo = await _context.SEG_PARAMETRO_USUARIO
+                    .AsNoTracking()
+                    .Where(x => x.UsCodigo == usCodigo && x.AgCodigo == agenciaId)
+                    .Select(x => x.PuModulo)
+                    .FirstOrDefaultAsync();
+
+                if (!string.IsNullOrWhiteSpace(puModulo))
+                    moduloUsuario = puModulo.Trim();
+            }
+
+            turno.AsgModulo = moduloUsuario;
             turno.AsgFechAsig = ahora;
             turno.AsgFechMovi = ahora;
-            turno.UsCodigo = UsuarioMostrador;
+            turno.UsCodigo = usCodigo > 0 ? usCodigo : UsuarioMostrador;
             turno.AsgEstado = "R";
             turno.AsgTime = 9;
 
@@ -128,7 +146,6 @@ namespace Automotores.Kiosco.Modules.Turnos.Services
             turno.AsgEstado = "R";
             turno.AsgTime = 3;
             turno.AsgFechMovi = ahora;
-            turno.UsCodigo = UsuarioMostrador;
 
             if (string.IsNullOrWhiteSpace(turno.AsgModulo) || turno.AsgModulo == "N")
                 turno.AsgModulo = ModuloMostrador;
@@ -202,7 +219,6 @@ namespace Automotores.Kiosco.Modules.Turnos.Services
 
             turno.AsgEstado = "I";
             turno.AsgFechMovi = ahora;
-            turno.UsCodigo = UsuarioMostrador;
 
             await _context.SaveChangesAsync();
 

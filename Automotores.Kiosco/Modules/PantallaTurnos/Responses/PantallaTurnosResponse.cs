@@ -8,6 +8,6 @@ namespace Automotores.Kiosco.Modules.PantallaTurnos.Responses
         public PantallaTurnoDto? TurnoActual { get; set; }
         public List<PantallaTurnoDto> TurnosRecienLlamados { get; set; } = new();
         public List<PantallaTurnoDto> TurnosPendientes { get; set; } = new();
-        
+        public List<int> ModulosActivos { get; set; } = new();
     }
 }

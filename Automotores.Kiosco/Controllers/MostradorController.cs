@@ -17,6 +17,28 @@ namespace Automotores.Kiosco.Controllers
             _turnoMostradorService = turnoMostradorService;
         }
 
+        [HttpPost("disponibilidad/activar")]
+        public async Task<IActionResult> Activar([FromBody] ToggleDisponibilidadRequest request)
+        {
+            if (request.UsCodigo <= 0 || request.AgenciaId <= 0 || request.GnCodigo <= 0)
+                return BadRequest(new { mensaje = "UsCodigo, AgenciaId y GnCodigo son requeridos." });
+
+            var resultado = await _disponibilidadService.ActivarAsync(
+                request.UsCodigo, request.AgenciaId, request.GnCodigo);
+
+            return Ok(resultado);
+        }
+
+        [HttpPost("disponibilidad/desactivar")]
+        public async Task<IActionResult> Desactivar([FromBody] ToggleDisponibilidadRequest request)
+        {
+            if (request.UsCodigo <= 0 || request.AgenciaId <= 0 || request.GnCodigo <= 0)
+                return BadRequest(new { mensaje = "UsCodigo, AgenciaId y GnCodigo son requeridos." });
+
+            await _disponibilidadService.DesactivarAsync(request.UsCodigo, request.AgenciaId, request.GnCodigo);
+            return Ok(new { mensaje = "Módulo desactivado." });
+        }
+
         [HttpPost("disponibilidad/toggle")]
         public async Task<IActionResult> Toggle([FromBody] ToggleDisponibilidadRequest request)
         {
